@@ -3,12 +3,21 @@
 <h2>docker関係<h3>
 
 <h3>dockerのプロジェクトの起動</h3>
+<p>cd docker</p>
 <p>docker-compose up</p>
 
 <h3>dockerのbackend側(node.js(express.js))の起動</h3>
 <p>docker exec -u node -it back /bin/bash</p>
 <p>npm run dev</p>
 <p>port：8080</p>
+<p>migrate(テーブル作成)とseeder(データ補充)を更新してください</p>
+<p>migrateの更新のやり方</p>
+<p>npx sequelize db:migrate --env development</p>
+<a href="https://qiita.com/hare-systems-ryo/items/73db197a82100d18bb3f">このページを参考にして</a>
+<p>seederの更新のやり方</p>
+<p>npx sequelize-cli db:seed:all</p>
+<a href="https://blog.capilano-fw.com/?p=5546#i-3">このページを参考にして</a>
+
 
 <h3>dockerのfrontend側(React)の起動</h3>
 <p>docker exec -u node -it front /bin/bash</p>
