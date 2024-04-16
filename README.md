@@ -1,1 +1,28 @@
-<h1>README TEST</h1>
+<h1>mangaCommunity概要</h1>
+
+<h2>docker関係<h3>
+
+<h3>dockerのプロジェクトの起動</h3>
+<p>docker-compose up</p>
+
+<h3>dockerのbackend側(node.js(express.js))の起動</h3>
+<p>docker exec -u node -it back /bin/bash</p>
+<p>npm run dev</p>
+<p>port：8080</p>
+
+<h3>dockerのfrontend側(React)の起動</h3>
+<p>docker exec -u node -it front /bin/bash</p>
+<p>cd app</p>
+<p>npm start</p>
+<p>port：3000</p>
+<p>基本的にhttp://localhost:3000/これでリクエストを送る</p>
+
+<h3>dockerのmysqlの起動</h3>
+<p>docker-compose exec mysql mysql -uroot -p</p>
+<p>パスワード：manga</p>
+<p>データベース名：mangacommunity</p>
+
+<h2>簡単なルール</h2>
+<p>勝手にマージせずプルリクを送る（僕が大丈夫か判断する）</p>
+<p>タブサイズを４とする。</p>
+<p>あとは、楽しく開発をしよう</p>
