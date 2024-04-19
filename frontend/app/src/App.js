@@ -1,29 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Route, Routes, Link } from "react-router-dom";
+import Login from "./components/users/Login";
 
 const App = () => {
-  const url = "/users";
-  const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    fetch(url, { method: "GET" })
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>Users</h1>
-      <ul>
-        {users.map((user, index) => (
-          <li key={index}>{user.name}</li>
-        ))}
-      </ul>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
