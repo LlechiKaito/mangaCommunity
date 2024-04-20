@@ -35,3 +35,12 @@
 <p>勝手にマージせずプルリクを送る（僕が大丈夫か判断する）</p>
 <p>タブサイズを４とする。</p>
 <p>あとは、楽しく開発をしよう</p>
+
+<h3>開発環境詳細</h3>
+<p>開発環境：node.js</p>
+<p>バックエンド：express.js</p>
+<p>フロントエンド：react</p>
+<p>cssのフレームワーク：tailwind</p>
+<p>ORM：prisma</p>
+<p>データベース：mysql</p>
+<p>web3.js使うのにtruffle</p>
