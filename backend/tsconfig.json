@@ -4,8 +4,8 @@
     "module": "commonjs",
     "lib": ["es2020"],
     "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "../backend",
+    "rootDir": "src",
+    "outDir": "../dist",
     "strict": true,
     "moduleResolution": "node",
     "baseUrl": "src",
@@ -13,12 +13,11 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true
   },
   "include": [
-    "controllers/**/*", 
-    "routes/**/*", 
-    "models/**/*", 
+    "src/**/*",
   ],
   "exclude": ["dist", "node_modules"],
   "compileOnSave": false
