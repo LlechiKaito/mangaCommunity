@@ -1,34 +1,51 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import '../../index.css';
-
-interface User {
-  name: string;
-  // Define other properties of user here if needed
-}
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
-  const url = "/users";
-  const [users, setUsers] = useState<User[]>([]);
+  const [loginId, setLoginId] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
-  useEffect(() => {
-    fetch(url, { method: "GET" })
-      .then((res) => res.json())
-      .then((data: User[]) => {
-        setUsers(data);
+  const navigate = useNavigate();
+
+  const LoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const url: string = "/users/login";
+
+    try {
+      await axios.post(url, {
+        login_id: loginId,
+        password: password,
       })
-      .catch((err) => {
-        console.log(err);
+      .then((response) => {
+        localStorage.setItem('user_id', response.data.id);
+        navigate("/");
       });
-  }, []);
-
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
   return (
-    <div className="App">
-      <h1 className="bg-gray-300">Users</h1>
-      <ul>
-        {users.map((user: User, index: number) => (
-          <li key={index}>{user.name}</li>
-        ))}
-      </ul>
+    <div>
+      <h1>ログイン</h1>
+      <form onSubmit={LoginSubmit}>
+        <input 
+          type="text" 
+          placeholder='ログインID' 
+          name={loginId}
+          onChange={(e) => setLoginId(e.target.value)}
+        />
+        <input
+          type='text'
+          placeholder='パスワード'
+          name={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">登録</button>
+      </form>
     </div>
   );
 }

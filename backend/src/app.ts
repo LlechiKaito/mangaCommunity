@@ -1,30 +1,27 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { createUser, getUsers, loginUser } from './controllers/UserController';
+import cors from "cors";
+import { CorsOptions } from "cors";
+import cookieParser from "cookie-parser";
 
 const app: Express = express();
 const port = 8080;
 
-// Async function to handle the route logic
-const getUsers = async (req: Request, res: Response) => {
-    try {
-        const users = await prisma.user.findMany({
-            include: {
-                authority: true,
-            },
-        });
-        console.dir(users, { depth: null });
-        res.json(users);
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        res.status(500).send('Internal Server Error');
-    }
+const corsOptions: CorsOptions ={
+    origin: "http://localhost:3000",
+    credentials: true,
 };
 
-// Route definition using the async function
+app.use(cors(corsOptions));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
+
+// user関係のルーティング
 app.get('/users', getUsers);
+app.post('/users/register', createUser);
+app.post('/users/login', loginUser);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
