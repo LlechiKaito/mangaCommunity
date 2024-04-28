@@ -31,5 +31,24 @@ model User {
   name          String
   authority_id  Int
   authority     Authority @relation(fields: [authority_id], references: [id])
+  works         Work[]
  }
 
+model Work {
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  explanation   String    
+  user_id       Int 
+  user          User      @relation(fields: [user_id], references: [id])
+  workimages    WorkImage[]
+}
+
+model WorkImage {
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  file_name     String    
+  work_id       Int
+  woek          Work      @relation(fields: [work_id], references: [id])
+}
