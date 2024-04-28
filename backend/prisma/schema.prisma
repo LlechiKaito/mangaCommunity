@@ -50,5 +50,5 @@ model WorkImage {
   updatedAt     DateTime  @updatedAt
   file_name     String    
   work_id       Int
-  woek          Work      @relation(fields: [work_id], references: [id])
+  work          Work      @relation(fields: [work_id], references: [id])
 }
