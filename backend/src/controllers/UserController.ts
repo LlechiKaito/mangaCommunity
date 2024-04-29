@@ -1,9 +1,31 @@
+import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
 import { PrismaClient } from '@prisma/client';
 import bcrypt, { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
+import session, { SessionData }from 'express-session';
 
+//sessionにおいてuserIdを定義
+declare module 'express-session' {
+    interface SessionData {
+        userId: number;
+    }
+}
+const app = express();
 const prisma = new PrismaClient();
+
+console.log('Session middleware initialized');
+
+app.use(session({
+    secret: 'manga',
+    resave: false,
+    saveUninitialized:false,
+    cookie: { maxAge: 60 * 60 * 1000,
+              secure: true,
+    },
+}));
+
+app.use(express.json());
 
 // 全表示
 export const getUsers = async (req: Request, res: Response) => {
@@ -105,7 +127,7 @@ export const createUser = async (req: Request, res: Response) => {
     }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: express.Request, res: express.Response) => {
     try {
         const login_id: string = req.body.login_id;
         const password: string = req.body.password;
@@ -125,11 +147,15 @@ export const loginUser = async (req: Request, res: Response) => {
         }
 
         if (bcrypt.compareSync(password, user.password)){
+            //ログイン成功時にセッションにユーザーidを保存する
+            req.session!.userId = user.id;
+
             res.status(200).json(user);
         } else {
             res.status(401).json({ error_password: "このユーザーIDのパスワードが間違えています。", user: user });
         }
     } catch (error) {
+        console.log(req.session)
         console.error("Error fetching users:", error);
         res.status(500).send('Internal Server Error');
     }
