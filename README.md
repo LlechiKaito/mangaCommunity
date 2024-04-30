@@ -17,8 +17,8 @@
 <p>seederの更新のやり方(上から順番通りにやってね)</p>
 <p>npx nodemon src/seeders/userCreateLlechi.ts </p>
 <p>npx nodemon src/seeders/userCreateFree.ts </p>
-<p>npx nodemon src/seeders/userCreateLlechi.ts </p>
-<p>npx nodemon src/seeders/userCreateFree.ts </p>
+<p>npx nodemon src/seeders/userUpdateLlechi.ts </p>
+<p>npx nodemon src/seeders/userUpdateFree.ts </p>
 
 
 <h3>dockerのfrontend側(React)の起動</h3>
