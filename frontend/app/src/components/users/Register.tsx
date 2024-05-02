@@ -3,13 +3,7 @@ import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
 
-// interface User {
-//   id: number;
-//   name: string;
-// }
-
 const Register: React.FC = () => {
-  // const [users, setUsers] = useState<User[]>([]);
 
   const [loginId, setLoginId] = useState<string>('');
   const [emailAddress, setEmailAddress] = useState<string>('');

@@ -23,6 +23,11 @@ export const getUsers = async (req: Request, res: Response) => {
 // ユーザー作成機能(メール認証は行なっていない。)
 export const createUser = async (req: Request, res: Response) => {
     try {
+        if(req.session.user_id){
+            res.status(403).json({ error_login: "既にログインしています。" });
+            return;
+        }
+
         // バリデーションのルールを定義
         await body('login_id')
             .notEmpty().withMessage('ログインIDは必須です。')
@@ -107,11 +112,14 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
+
+        if(req.session.user_id){
+            res.status(403).json({ error_login: "既にログインしています。" });
+            return;
+        }
+
         const login_id: string = req.body.login_id;
         const password: string = req.body.password;
-
-        const saltRounds: number = 10;
-        const hashed_password: string = await bcrypt.hash(password, saltRounds);
 
         const user = await prisma.user.findUnique({
             where: {
@@ -120,15 +128,34 @@ export const loginUser = async (req: Request, res: Response) => {
         });
 
         if (!user){
-            res.status(401).json({ error_message: "このユーザーIDは存在しません。" });
+            res.status(400).json({ error_message: "このユーザーIDは存在しません。" });
             return;
         }
 
-        if (bcrypt.compareSync(password, user.password)){
+        const passwordIsValid = await bcrypt.compareSync(password, user.password)
+        if (passwordIsValid){
+            req.session.user_id = user.id;
+            req.session.name = user.name;
+            req.session.save();
             res.status(200).json(user);
         } else {
-            res.status(401).json({ error_password: "このユーザーIDのパスワードが間違えています。", user: user });
+            res.status(400).json({ error_password: "このユーザーIDのパスワードが間違えています。", user: user });
         }
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+export const logoutUser = async (req: Request, res: Response) => {
+    try {
+        if (!req.session.user_id) {
+            res.status(403).json({ error_logout: "ログインしていません。" });
+            return;
+        }
+        req.session.destroy((error) => {
+            res.status(200).json({ message: "正常にログアウトしました。" });
+        });
     } catch (error) {
         console.error("Error fetching users:", error);
         res.status(500).send('Internal Server Error');

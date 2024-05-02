@@ -21,6 +21,7 @@ const Login: React.FC = () => {
       })
       .then((response) => {
         localStorage.setItem('user_id', response.data.id);
+        localStorage.setItem('name', response.data.name);
         navigate("/");
       });
     } catch (error) {
