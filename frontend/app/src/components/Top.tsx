@@ -1,35 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import '../index.css';
-
-interface User {
-  name: string;
-  // Define other properties of user here if needed
-}
+import { useNavigate } from 'react-router-dom';
 
 const Top: React.FC = () => {
-  const url = "/users";
-  const [users, setUsers] = useState<User[]>([]);
 
-  useEffect(() => {
-    fetch(url, { method: "GET" })
-      .then((res) => res.json())
-      .then((data: User[]) => {
-        setUsers(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+  const navigate = useNavigate();
+
+  const onLogout = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let url: string = "/users/logout";
+    const afterUrl: string = window.location.pathname;
+
+    try {
+      await axios.post(url);
+      localStorage.clear();
+      navigate(afterUrl);
+    } catch (error) {
+      console.error(error);
+    }
+    
+  }
+
+  const AuthenticationComponent = () => {
+    if (localStorage.getItem('user_id')){
+      return (
+        <div>
+          <button onClick={onLogout}>ログアウト</button>
+          <div>{localStorage.getItem("name")}でログインしています。</div>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <a href="/users/login">ログイン</a>
+          <a href="users/register">新規登録</a>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="App">
-      <h1 className="bg-gray-300">Users</h1>
-      <ul>
-        {users.map((user: User, index: number) => (
-          <li key={index}>{user.name}</li>
-        ))}
-      </ul>
-      <div>{localStorage.getItem("user_id")}</div>
+      <h1 className="bg-gray-300">Topページ</h1>
+      <AuthenticationComponent />
     </div>
   );
 }
