@@ -8,6 +8,7 @@ async function main() {
         data: {
             explanation: 'first work',
             user_id: 1,
+            title: 'naruto',
         }
     })
 
@@ -17,7 +18,7 @@ async function main() {
     ]
 
     await Promise.all(workImagesData.map(async (imageData) => {
-        await prisma.workImage.create({
+        await prisma.work_image.create({
             data: imageData,
         })
     }))

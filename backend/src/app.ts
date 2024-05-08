@@ -1,6 +1,7 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
 import { createUser, getUsers, loginUser, logoutUser } from './controllers/UserController';
+import { createWork, getWorks, showWork, deleteWork, updateWork} from './controllers/WorkController';
 import cors from "cors";
 import { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
@@ -49,6 +50,12 @@ app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
+//work関係のルーティング
+app.get('/works', getWorks);
+app.post('/works/create', createWork);
+app.get('/works/:id', showWork);
+app.delete('/works/:id',deleteWork);
+app.put('/works/:id',updateWork);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
