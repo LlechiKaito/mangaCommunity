@@ -62,7 +62,16 @@ export const createWork = async (req: Request, res: Response) => {
 
 export const showWork = async (req: Request, res: Response) => {
     try {
+        if (!req.session.user_id) {
+            res.status(403).json({ error_login: "ログインしてください。" });
+            //res.redirect('/users/login');
+            return;
+        }
+
+        const userId: number | undefined = req.session.user_id;
+        
         const workId = parseInt(req.params.id);
+    
 
         const work = await prisma.work.findUnique({
             where: {
@@ -83,14 +92,28 @@ export const showWork = async (req: Request, res: Response) => {
         if (!work_image) {
             return res.status(404).json({ error: "作品画像がみつかりません。" });
         }
+        
+        // ブックマークの状態を取得
+        const isBookmarked = await checkBookmark(userId, workId);
 
-
-        res.json({work, work_image}); //ShowWork.tsxのshowwork関数に送る
+        res.json({work, work_image, isBookmarked}); //ShowWork.tsxのshowwork関数に送る
     
     } catch (error) {
         console.error("Error fetching work:", error);
         res.status(500).send('Internal Server Error');
     }
+};
+
+// ブックマークの状態をチェックする関数
+const checkBookmark = async (userId: number, workId: number): Promise<boolean> => {
+    const bookmark = await prisma.book_mark.findFirst({
+        where: {
+            user_id: userId,
+            work_id: workId
+        }
+    });
+
+    return bookmark ? true : false;
 };
 
 export const deleteWork = async (req: Request, res: Response) => {

@@ -1,7 +1,8 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
 import { createUser, getUsers, loginUser, logoutUser } from './controllers/UserController';
-import { createWork, getWorks, showWork, deleteWork, updateWork} from './controllers/WorkController';
+import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
+import { doBookMark, undoBookMark } from './controllers/BookMarkController';
 import cors from "cors";
 import { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
@@ -54,8 +55,18 @@ app.post('/users/logout', logoutUser);
 app.get('/works', getWorks);
 app.post('/works/create', createWork);
 app.get('/works/:id', showWork);
-app.delete('/works/:id',deleteWork);
+app.delete('/works/:id', (req, res, next) => {
+    if (req.query.action === 'undoBookmark') {
+        undoBookMark(req, res);
+    } else {
+        deleteWork(req, res);
+    }
+});
 app.put('/works/:id',updateWork);
+
+//bookmarkのルーティング
+app.post('/works/:id', doBookMark);
+
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

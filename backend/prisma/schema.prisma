@@ -32,6 +32,7 @@ model User {
   authority_id  Int
   authority     Authority @relation(fields: [authority_id], references: [id])
   works         Work[]
+  works_Book_mark        Book_mark[]
  }
 
 model Work {
@@ -43,6 +44,7 @@ model Work {
   user_id       Int 
   user          User      @relation(fields: [user_id], references: [id])
   workimage     Work_image?
+  users         Book_mark[]
 }
 
 model Work_image {
@@ -52,4 +54,14 @@ model Work_image {
   file_name     String    
   work_id       Int       @unique
   work          Work      @relation(fields: [work_id], references: [id])
+}
+
+model Book_mark {
+  user         User       @relation(fields: [user_id], references: [id])
+  user_id      Int
+  work         Work       @relation(fields: [work_id], references: [id])
+  work_id      Int
+  assignedAt   DateTime @default(now())
+
+  @@id([user_id, work_id])
 }

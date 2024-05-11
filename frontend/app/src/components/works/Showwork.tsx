@@ -10,7 +10,7 @@ type Work = {
 };
 
 type WorkImage = {
-  file_name: string; 
+  file_name: string;
 }
 
 const Showwork: React.FC = () => {
@@ -25,6 +25,8 @@ const Showwork: React.FC = () => {
   const [file_name, setFile_name] = useState<string>(' ');
   //ここまで重要（https://qiita.com/seira/items/f063e262b1d57d7e78b4)
 
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false); //未フォローorフォロー済みの管理
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,8 +34,9 @@ const Showwork: React.FC = () => {
       try {
         const response = await axios.get(`/works/${id}`);
 
-        setWork(response.data.work); //res.json({work, work_image});という返り値を振り分ける
-        setWorkImage(response.data.work_image); 
+        setWork(response.data.work); 
+        setWorkImage(response.data.work_image);
+        setIsBookmarked(response.data.isBookmarked);
 
       } catch (error) {
         console.error('Error fetching work:', error);
@@ -56,8 +59,28 @@ const Showwork: React.FC = () => {
     try {
       await axios.put(`/works/${id}`, { explanation, title, file_name: workImage?.file_name }); // 更新データを送信
       navigate('/works');
-    } catch(error) {
+    } catch (error) {
       console.error('Error updating work:', error)
+    }
+  };
+
+  const doBookMark = async () => {
+    try {
+      setIsBookmarked(true);
+      await axios.post(`/works/${id}`);
+      navigate(`/works/${id}`);
+    } catch (error) {
+      console.error('Error doing Bookmark:', error)
+    }
+  };
+
+  const undoBookMark = async () => {
+    try {
+      setIsBookmarked(false);
+      await axios.delete(`/works/${id}?action=undoBookmark`);
+      navigate(`/works/${id}`);
+    } catch (error) {
+      console.error('Error undoing Bookmark', error)
     }
   };
 
@@ -103,9 +126,12 @@ const Showwork: React.FC = () => {
                 onChange={(e) => setFile_name(e.target.value)}
               />
             </div>
-            
+
             <button type="submit">Update Work</button>
           </form>
+          <button onClick={isBookmarked ? undoBookMark : doBookMark}>
+            {isBookmarked ? "ブックマーク解除" : "ブックマークする"}
+          </button>
         </div>
       ) : (
         <p>Loading...</p>
