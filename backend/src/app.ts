@@ -1,6 +1,6 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
-import { createUser, getUsers, loginUser, logoutUser } from './controllers/UserController';
+import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser } from './controllers/UserController';
 import cors from "cors";
 import { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
@@ -49,6 +49,8 @@ app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
+app.get('/users/forget/email', forgetLoginId);
+app.get('/users/forget/password', forgetPassword);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

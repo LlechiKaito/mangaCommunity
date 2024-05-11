@@ -50,5 +50,14 @@ services:
     depends_on:
       - mysql
 
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - '8025:8025'
+      - '1025:1025'
+    networks:
+      - react_express
+
+
 volumes:
   mysqldata:
