@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../index.css';
-import Header from './shared/Header.tsx';
+import Header, { getLocalStorage } from './shared/Header.tsx';
 
 const Top: React.FC = () => {
 

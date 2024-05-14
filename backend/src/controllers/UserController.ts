@@ -5,7 +5,6 @@ import { body, validationResult } from 'express-validator';
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
-import { env } from 'process';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
 import _ from "lodash-es";
 
@@ -273,7 +272,8 @@ export const forgetPassword = async (req: Request, res: Response) => {
                     password_reset_expires: expireTimeDate
                 },
             });
-              // デプロイ時このURLを変える必要があります。
+            
+            // デプロイ時このURLを変える必要があります。
             const resetUrl = `http://localhost:3000/users/reset-password?token=${token}`
             // この内容に関して変える必要がある
             const content: string = `
@@ -282,6 +282,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
                 <p>${resetUrl}</p>
             `;
             // http://localhost:8025/ を入力することでメール送信されたかがわかる。
+
             // const smtp = nodemailer.createTransport({
             //     host: 'smtp.example.com', //実際のSMTPサーバーのホスト名に置き換える必要があります
             //     port: 587,//25の可能性もある
@@ -324,15 +325,82 @@ export const forgetPassword = async (req: Request, res: Response) => {
     }
 }
 
-export const resetPassword = async (req: Request, res: Response) => {
-    if (_.isString(req.query.token) && _.isString(process.env.JWT_SECRET)) {
-        const token: string = req.query.token;
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+interface DecodedToken {
+    id: number;
+}
 
-        const user = await prisma.user.findUnique({
-            where: {
-                id: decodedToken.id,
-            },
-        });
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        if (_.isString(req.query.token) && _.isString(process.env.JWT_SECRET)) {
+            const token: string = req.query.token;
+            const decodedToken = jwt.verify(token, process.env.JWT_SECRET) as DecodedToken;
+            const nowTimeDate: Date = new Date();
+            const userId: number = decodedToken.id;
+
+            const user = await prisma.user.findUnique({
+                where: {
+                    id: userId,
+                    password_reset_token: token,
+                    password_reset_expires: { gt: nowTimeDate },
+                },
+            });
+
+            if (!user) {
+                res.status(401).json({ error: '無効または期限技れのパスワードリセットトークンです。' });
+                return;
+            }
+
+            const password: string = req.body.password;
+
+            await prisma.user.update({
+                where: { id: userId },
+                data: {
+                    password: password,
+                    password_reset_token: null,
+                    password_reset_expires: null,
+                },
+            });
+
+            const from: string = "llechi0420@gmail.com";
+            const to: string = user.email_address;
+            const subject: string = "漫画コミュニティWEBサイトより -パスワードリセット確認-";
+            // この内容に関して変える必要がある
+            const content: string = `
+                <p>パスワードが正常にリセットされました。</p>
+                <p>このリクエストを行なっていない場合は、すぐにお問い合わせください。</p>
+            `;
+            // http://localhost:8025/ を入力することでメール送信されたかがわかる。
+
+            // const smtp = nodemailer.createTransport({
+            //     host: 'smtp.example.com', //実際のSMTPサーバーのホスト名に置き換える必要があります
+            //     port: 587,//25の可能性もある
+            //     secure: false, // true for 465, false for other ports
+            //     auth: {
+            //         user: 'your_username',
+            //         pass: 'your_password'//実際のユーザー名とパスワードに置き換える必要があります。
+            //     }
+            // });
+            // この上のようにsmtpに設定しデプロイする必要があります。
+            const smtp = nodemailer.createTransport({
+                host: 'mailhog',
+                port: 1025,
+                auth: {
+                    user: 'user',
+                    pass: 'password'
+                }
+            });
+
+            const option = {
+                from: from, 
+                to: to, 
+                subject: subject, 
+                html: content
+            };
+
+            await smtp.sendMail(option);
+        }
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).send('Internal Server Error');
     }
 }

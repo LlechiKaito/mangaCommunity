@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
+import Header, { getLocalStorage } from '.././shared/Header.tsx';
 
 const Register: React.FC = () => {
 
@@ -13,20 +14,25 @@ const Register: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const RegisterSubmit = async (e: React.FormEvent) => {
+  const RegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const url: string = "/users/register";
 
     try {
-      await axios.post(url, {
-        login_id: loginId,
-        email_address: emailAddress,
-        password: password,
-        password_confirmation: passwordConfirmation,
-        name: name,
-      })
-      navigate('/users/login');
+      useEffect(() => {
+        const fetchData = async () => {
+          await axios.post(url, {
+            login_id: loginId,
+            email_address: emailAddress,
+            password: password,
+            password_confirmation: passwordConfirmation,
+            name: name,
+          });
+          navigate('/users/login');
+        }
+        fetchData;
+      }, []);
     } catch (error) {
       console.error(error);
     }
@@ -34,6 +40,7 @@ const Register: React.FC = () => {
 
   return (
     <div>
+      <Header />
       <h1>アカウント作成</h1>
       <form onSubmit={RegisterSubmit}>
         <input 

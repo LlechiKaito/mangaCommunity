@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
+import Header, { getLocalStorage } from '.././shared/Header.tsx';
 
 const Login: React.FC = () => {
   const [loginId, setLoginId] = useState<string>('');
@@ -9,21 +10,38 @@ const Login: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const LoginSubmit = async (e: React.FormEvent) => {
+  const LoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const url: string = "/users/login";
+    const redirectUrl: string = "/";
+    const userIdKey: string = "user_id";
+    const nameKey: string = "name";
+    const expireTime: number = Date.now() + 2 * 60 * 60 * 1000; //二時間の期限
 
     try {
-      await axios.post(url, {
-        login_id: loginId,
-        password: password,
-      })
-      .then((response) => {
-        localStorage.setItem('user_id', response.data.id);
-        localStorage.setItem('name', response.data.name);
-        navigate("/");
-      });
+      useEffect(() => {
+        const fetchData = async () => {
+          await axios.post(url, {
+            login_id: loginId,
+            password: password,
+          })
+          .then((response) => {
+            const userItem = {
+              value: response.data.id,
+              expiry: expireTime
+            }
+            const nameItem = {
+              value: response.data.name,
+              expiry: expireTime
+            }
+            localStorage.setItem(userIdKey, JSON.stringify(userItem));
+            localStorage.setItem(nameKey, JSON.stringify(nameItem));
+            navigate(redirectUrl);
+          });
+        }
+        fetchData;
+      }, []);
     } catch (error) {
       console.error(error);
     }
@@ -31,6 +49,7 @@ const Login: React.FC = () => {
   
   return (
     <div>
+      <Header />
       <h1>ログイン</h1>
       <form onSubmit={LoginSubmit}>
         <input 
