@@ -14,7 +14,7 @@ export const doBookMark = async (req: Request, res: Response) => {
             return;
         }
 
-        const userId: number | undefined = req.session.user_id;
+        const userId: number = req.session.user_id;
 
         const workId = parseInt(req.params.id);
 
@@ -39,7 +39,7 @@ export const undoBookMark = async (req: Request, res: Response) => {
             return;
         }
 
-        const userId: number | undefined = req.session.user_id;
+        const userId: number = req.session.user_id;
 
         const workId = parseInt(req.params.id);
 

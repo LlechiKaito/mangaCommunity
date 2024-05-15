@@ -3,9 +3,9 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Login from './components/users/Login.tsx';
 import Register from './components/users/Register.tsx';
 import Top from './components/Top.tsx';
-import Allwork from './components/works/Allwork.tsx';
-import Creatework from './components/works/Creatework.tsx';
-import Showwork from './components/works/Showwork.tsx'
+import Allwork from './components/works/AllWork.tsx';
+import Creatework from './components/works/CreateWork.tsx';
+import Showwork from './components/works/ShowWork.tsx'
 
 export const App: React.FC = () => {
   return (

@@ -9,7 +9,18 @@ const prisma = new PrismaClient();
 //全表示//
 export const getWorks = async (req: Request, res: Response) => {
     try {
-        const works = await prisma.work.findMany({});
+        const works = await prisma.work.findMany({
+            select: {
+                id: true,
+                title: true,
+                explanation: true,
+                work_image: {
+                    select: {
+                        file_name: true
+                    }
+                }
+            }
+        });
         res.json(works);
     } catch (error) {
         console.error("Error fetching works:", error);
@@ -40,7 +51,7 @@ export const createWork = async (req: Request, res: Response) => {
 
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
-        const user_id: number | undefined = req.session.user_id;
+        const user_id: number = req.session.user_id;
         const workImage: string = req.body.work_image;
 
         const work = await prisma.work.create({
@@ -48,7 +59,7 @@ export const createWork = async (req: Request, res: Response) => {
                 explanation: explanation,
                 user_id: user_id,
                 title: title,
-                workimage: {
+                work_image: {
                     create: { file_name: workImage }
                 },
             },
@@ -68,7 +79,7 @@ export const showWork = async (req: Request, res: Response) => {
             return;
         }
 
-        const userId: number | undefined = req.session.user_id;
+        const userId: number = req.session.user_id;
         
         const workId = parseInt(req.params.id);
     
@@ -77,26 +88,27 @@ export const showWork = async (req: Request, res: Response) => {
             where: {
                 id: workId
             },
+            include: {
+                work_image: {
+                    select: {
+                        file_name: true
+                    }
+                },
+            },
         });
 
         if (!work) {
             return res.status(404).json({ error: "作品がみつかりません。" });
         }
 
-        const work_image = await prisma.work_image.findUnique({
-            where: {
-                work_id: workId
-            },
-        });
-
-        if (!work_image) {
+        if (!work.work_image) {
             return res.status(404).json({ error: "作品画像がみつかりません。" });
         }
         
         // ブックマークの状態を取得
         const isBookmarked = await checkBookmark(userId, workId);
 
-        res.json({work, work_image, isBookmarked}); //ShowWork.tsxのshowwork関数に送る
+        res.json({work, isBookmarked}); //ShowWork.tsxのshowwork関数に送る
     
     } catch (error) {
         console.error("Error fetching work:", error);
@@ -117,20 +129,15 @@ const checkBookmark = async (userId: number, workId: number): Promise<boolean> =
 };
 
 export const deleteWork = async (req: Request, res: Response) => {
+    const workId = parseInt(req.params.id);
+
     try {
-        const workId = parseInt(req.params.id);
-
-        await prisma.work_image.delete({
-            where: {
-                work_id:workId
-            }
-        });
-
         await prisma.work.delete({
-            where: {
-                id: workId
-            }
-        });
+                where: {
+                    id: workId
+                }
+            });
+
         res.status(204).send();
     } catch (error) {
         console.error("Error deleting work:", error);
@@ -154,25 +161,13 @@ export const updateWork = async (req: Request, res: Response) => {
             .isLength({ min: 1, max: 50 }).withMessage('タイトルは1文字以上50文字以下で設定してください。')
             .run(req);
 
-        const explanation: string = req.body.explanation;
-        const title: string = req.body.title;
-        const workImage: string = req.body.work_image;
+        const { title, explanation, file_name} = req.body;
 
-        const updateWork = await prisma.work.update({
-            where: { id: workId }, // 更新対象の作品のIDを指定
-            data: {
-                title: title, // タイトルを更新
-                explanation: explanation, // 説明を更新
-            },
-        });
-
-        const updateWorkimage = await prisma.work_image.update({
-            where: { work_id: workId},
-            data: {
-                file_name: workImage,
-            }
-        })
-        res.json({ updateWork, updateWorkimage });
+        await prisma.work.update({
+                where: { id: workId },
+                data: { title: title, explanation: explanation, work_image: file_name }
+            });
+        res.json({ updateWork});
         
     } catch (error) {
         console.error("Error updating work:", error);

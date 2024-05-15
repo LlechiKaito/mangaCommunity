@@ -43,7 +43,7 @@ model Work {
   explanation   String    
   user_id       Int 
   user          User      @relation(fields: [user_id], references: [id])
-  workimage     Work_image?
+  work_image     Work_image?
   users         Book_mark[]
 }
 
@@ -53,13 +53,13 @@ model Work_image {
   updatedAt     DateTime  @updatedAt
   file_name     String    
   work_id       Int       @unique
-  work          Work      @relation(fields: [work_id], references: [id])
+  work          Work      @relation(fields: [work_id], references: [id], onDelete: Cascade)
 }
 
 model Book_mark {
   user         User       @relation(fields: [user_id], references: [id])
   user_id      Int
-  work         Work       @relation(fields: [work_id], references: [id])
+  work         Work       @relation(fields: [work_id], references: [id], onDelete: Cascade)
   work_id      Int
   assignedAt   DateTime @default(now())
 
