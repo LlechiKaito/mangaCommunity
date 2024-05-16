@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
+import Header, { getLocalStorage } from '.././shared/Header.tsx';
 
 const Register: React.FC = () => {
 
@@ -25,7 +26,7 @@ const Register: React.FC = () => {
         password: password,
         password_confirmation: passwordConfirmation,
         name: name,
-      })
+      });
       navigate('/users/login');
     } catch (error) {
       console.error(error);
@@ -34,6 +35,7 @@ const Register: React.FC = () => {
 
   return (
     <div>
+      <Header />
       <h1>アカウント作成</h1>
       <form onSubmit={RegisterSubmit}>
         <input 
