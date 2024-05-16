@@ -14,25 +14,20 @@ const Register: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const RegisterSubmit = (e: React.FormEvent) => {
+  const RegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const url: string = "/users/register";
 
     try {
-      useEffect(() => {
-        const fetchData = async () => {
-          await axios.post(url, {
-            login_id: loginId,
-            email_address: emailAddress,
-            password: password,
-            password_confirmation: passwordConfirmation,
-            name: name,
-          });
-          navigate('/users/login');
-        }
-        fetchData;
-      }, []);
+      await axios.post(url, {
+        login_id: loginId,
+        email_address: emailAddress,
+        password: password,
+        password_confirmation: passwordConfirmation,
+        name: name,
+      });
+      navigate('/users/login');
     } catch (error) {
       console.error(error);
     }

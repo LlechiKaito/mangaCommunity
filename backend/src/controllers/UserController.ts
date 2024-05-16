@@ -6,7 +6,6 @@ import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
-import _ from "lodash-es";
 
 const prisma = new PrismaClient();
 
@@ -260,7 +259,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
         }
 
         const subject: string = "漫画コミュニティWEBサイトより -パスワード変更のお知らせ-";
-        if (_.isString(process.env.JWT_SECRET)) {
+        if (process.env.JWT_SECRET) {
             const jwt_secret: string = process.env.JWT_SECRET;
             const token = jwt.sign({ id: user.id }, jwt_secret, { expiresIn: '1h' });         
             const expireTimeNumber: number = Date.now() + 3600000;
@@ -279,7 +278,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
             const content: string = `
                 <p>日頃より漫画コミュニティをご利用頂き、誠にありがとうございます。</p>
                 <p>漫画コミュニティ会員情報のワンタイムパスワードをお知らせ致します。</p>
-                <p>${resetUrl}</p>
+                <a href=${resetUrl}>こちらをクリックしてください。</a>
             `;
             // http://localhost:8025/ を入力することでメール送信されたかがわかる。
 
@@ -331,7 +330,41 @@ interface DecodedToken {
 
 export const resetPassword = async (req: Request, res: Response) => {
     try {
-        if (_.isString(req.query.token) && _.isString(process.env.JWT_SECRET)) {
+        if (req.session.user_id) {
+            res.status(403).json({ error_login: "既にログインしています。" });
+            return;
+        }
+
+        await body('password')
+            .notEmpty().withMessage('パスワードは必須です。')
+            .isString().withMessage('パスワードは文字列である必要があります。')
+            .isLength({ min: 8, max: 64 }).withMessage('パスワードは8文字以上64文字以下で設定してください')
+            .custom((value) => {
+                if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+                    return Promise.reject('パスワードは半角大文字、小文字、数字をそれぞれ1つ以上含む必要があります。');
+                }
+                return true;
+            })
+            .run(req);
+
+        await body('password_confirmation')
+            .custom((value, { req }) => {
+                if(value !== req.body.password) {
+                    return Promise.reject('パスワードと確認用パスワードが一致しません。');
+                }
+                return true;
+            })
+            .run(req);
+
+        // バリデーションの結果をチェック
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.log(errors);
+            console.log(req.body)
+            return res.status(400).json({ errors: errors.array(), users: req.body });
+        }
+
+        if (typeof req.query.token === 'string' && process.env.JWT_SECRET) {
             const token: string = req.query.token;
             const decodedToken = jwt.verify(token, process.env.JWT_SECRET) as DecodedToken;
             const nowTimeDate: Date = new Date();
@@ -350,12 +383,14 @@ export const resetPassword = async (req: Request, res: Response) => {
                 return;
             }
 
-            const password: string = req.body.password;
+            const saltRounds: number = 10;
+            const password = req.body.password;
+            const hashed_password: string = await bcrypt.hash(password, saltRounds);
 
             await prisma.user.update({
                 where: { id: userId },
                 data: {
-                    password: password,
+                    password: hashed_password,
                     password_reset_token: null,
                     password_reset_expires: null,
                 },
@@ -398,6 +433,10 @@ export const resetPassword = async (req: Request, res: Response) => {
             };
 
             await smtp.sendMail(option);
+
+            res.status(200).json({
+                message: "message has been sent",
+            });
         }
     } catch (error) {
         console.error("Error fetching users:", error);

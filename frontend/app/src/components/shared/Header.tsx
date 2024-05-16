@@ -50,14 +50,9 @@ const Header: React.FC = () => {
     const afterUrl: string = window.location.pathname;
 
     try {
-      useEffect(() => {
-        const fetchData = async () => {
-          await axios.post(url);
-          localStorage.clear();
-          navigate(afterUrl);
-        }
-        fetchData;
-      }, []);
+      await axios.post(url);
+      localStorage.clear();
+      navigate(afterUrl);
     } catch (error) {
       console.error(error);
     }
@@ -68,6 +63,7 @@ const Header: React.FC = () => {
   const localUserId: number = getLocalStorage(key);
   key = "name";
   const localName: string = getLocalStorage(key);
+
 
   const AuthenticationComponent = () => {
     if (isLoggedIn()){
@@ -90,6 +86,7 @@ const Header: React.FC = () => {
 
   return (
     <div className="App">
+      <a href="/">トップページへ</a>
       <AuthenticationComponent />
     </div>
   );

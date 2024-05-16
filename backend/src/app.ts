@@ -49,9 +49,9 @@ app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
-app.get('/users/forget/login_id', forgetLoginId);
-app.get('/users/forget/password', forgetPassword);
-app.get('/users/reset-password', resetPassword);
+app.post('/users/forget/login_id', forgetLoginId);
+app.post('/users/forget/password', forgetPassword);
+app.put('/users/reset-password', resetPassword);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

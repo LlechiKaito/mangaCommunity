@@ -9,22 +9,17 @@ const ForgetPassword: React.FC = () => {
 
     const navigate = useNavigate();
   
-    const ForgetPasswordSubmit = (e: React.FormEvent) => {
+    const ForgetPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
             
         const url: string = "/users/forget/password";
-        const redirectUrl: string = "/users/login";
+        const redirectUrl: string = "/users/after-send-email";
     
         try {
-            useEffect(() => {
-            const fetchData = async () => {
-                await axios.post(url, {
+            await axios.post(url, {
                 email_address: emailAddress,
-                });
-            }
-            fetchData;
+            });
             navigate(redirectUrl);
-            }, []);
         } catch (error) {
             console.error(error);
         }

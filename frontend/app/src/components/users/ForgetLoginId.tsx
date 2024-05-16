@@ -9,22 +9,17 @@ const ForgetLoginId: React.FC = () => {
 
     const navigate = useNavigate();
 
-    const ForgetLoginIdSubmit = (e: React.FormEvent) => {
+    const ForgetLoginIdSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const url: string = "/users/forget/login_id";
-        const redirectUrl: string = "/users/login";
+        const redirectUrl: string = "/users/after-send-email";
 
         try {
-            useEffect(() => {
-                const fetchData = async () => {
-                  await axios.post(url, {
-                    email_address: emailAddress,
-                  });
-                }
-                fetchData;
-                navigate(redirectUrl);
-            }, []);
+          await axios.post(url, {
+            email_address: emailAddress,
+          });
+          navigate(redirectUrl);
         } catch (error) {
             console.error(error);
         }
@@ -33,7 +28,7 @@ const ForgetLoginId: React.FC = () => {
   return (
     <div>
       <Header />
-      <h1></h1>
+      <h1>ログインID忘れ</h1>
       <form onSubmit={ForgetLoginIdSubmit}>
         <input 
           type="text" 

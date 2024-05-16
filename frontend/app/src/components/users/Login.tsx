@@ -10,7 +10,7 @@ const Login: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const LoginSubmit = (e: React.FormEvent) => {
+  const LoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const url: string = "/users/login";
@@ -20,28 +20,23 @@ const Login: React.FC = () => {
     const expireTime: number = Date.now() + 2 * 60 * 60 * 1000; //二時間の期限
 
     try {
-      useEffect(() => {
-        const fetchData = async () => {
-          await axios.post(url, {
-            login_id: loginId,
-            password: password,
-          })
-          .then((response) => {
-            const userItem = {
-              value: response.data.id,
-              expiry: expireTime
-            }
-            const nameItem = {
-              value: response.data.name,
-              expiry: expireTime
-            }
-            localStorage.setItem(userIdKey, JSON.stringify(userItem));
-            localStorage.setItem(nameKey, JSON.stringify(nameItem));
-            navigate(redirectUrl);
-          });
+      await axios.post(url, {
+        login_id: loginId,
+        password: password,
+      })
+      .then((response) => {
+        const userItem = {
+          value: response.data.id,
+          expiry: expireTime
         }
-        fetchData;
-      }, []);
+        const nameItem = {
+          value: response.data.name,
+          expiry: expireTime
+        }
+        localStorage.setItem(userIdKey, JSON.stringify(userItem));
+        localStorage.setItem(nameKey, JSON.stringify(nameItem));
+        navigate(redirectUrl);
+      });
     } catch (error) {
       console.error(error);
     }
@@ -66,6 +61,8 @@ const Login: React.FC = () => {
         />
         <button type="submit">登録</button>
       </form>
+      <a href="/users/forget/login_id">ログインID忘れ</a><br />
+      <a href="/users/forget/password">パスワード忘れ</a>
     </div>
   );
 }
