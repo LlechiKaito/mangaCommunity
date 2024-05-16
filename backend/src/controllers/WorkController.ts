@@ -9,7 +9,23 @@ const prisma = new PrismaClient();
 //全表示//
 export const getWorks = async (req: Request, res: Response) => {
     try {
+        // クエリパラメータから検索条件を取得
+        const { title, explanation, fileName } = req.query;
+
+        // whereオブジェクトを初期化
+        const where: any = {};
+
+        // titleが指定されている場合のフィルタリング
+        if (title) {
+            where.title = {
+                contains: title as string
+            };
+        }
+
+
+        // データベースからデータを取得
         const works = await prisma.work.findMany({
+            where,
             select: {
                 id: true,
                 title: true,
@@ -21,6 +37,8 @@ export const getWorks = async (req: Request, res: Response) => {
                 }
             }
         });
+
+        // 結果をレスポンスとして返す
         res.json(works);
     } catch (error) {
         console.error("Error fetching works:", error);
