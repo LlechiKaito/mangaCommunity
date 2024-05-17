@@ -34,6 +34,7 @@ model User {
   user_image             User_image?
   password_reset_token   String?
   password_reset_expires DateTime?
+  work                   Work[]
  }
 
 model User_image {
