@@ -1,8 +1,9 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
-import { createUser, getUsers, loginUser, logoutUser } from './controllers/UserController';
+import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
 import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
 import { doBookMark, undoBookMark } from './controllers/BookMarkController';
+import { createTag, getTags } from './controllers/TagController';
 import cors from "cors";
 import { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
@@ -27,6 +28,7 @@ declare module 'express-session' {
     interface SessionData {
         user_id: number;
         name: string;
+        authority_id: number;
     }
 }
 
@@ -37,13 +39,13 @@ app.use(session({
     secret: process.env.SESSION_SECRET || secretKey,
     resave: false,
     saveUninitialized: true,
-    // 下記がエラーの原因だがわからん
-    // cookie: {
+    cookie: {
+    //     下記がエラーの原因だがわからん
     //     secure: true, // HTTPSを使用する
     //     httpOnly: true, // XSS攻撃を防ぐ
     //     sameSite: 'strict', // CSRF攻撃を防ぐ
-    //     maxAge: 60 * 60 * 1000 // セッションの有効期限を設定（例: 1時間）
-    // }
+        maxAge: 2 * 60 * 60 * 1000 // セッションの有効期限を設定（例: 2時間）
+    }
 }));
 
 // user関係のルーティング
@@ -54,6 +56,7 @@ app.post('/users/logout', logoutUser);
 //work関係のルーティング
 app.get('/works', getWorks);
 app.post('/works/create', createWork);
+app.get('/works/create', getTags);
 app.get('/works/:id', showWork);
 app.delete('/works/:id', (req, res, next) => {
     if (req.query.action === 'undoBookmark') {
@@ -67,6 +70,12 @@ app.put('/works/:id',updateWork);
 //bookmarkのルーティング
 app.post('/works/:id', doBookMark);
 
+app.post('/users/forget/login_id', forgetLoginId);
+app.post('/users/forget/password', forgetPassword);
+app.put('/users/reset-password', resetPassword);
+app.get('/users/:id', getUserProfile);
+//Tagのルーティング
+app.post('/users/:id', createTag);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

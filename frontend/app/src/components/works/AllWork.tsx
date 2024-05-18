@@ -3,6 +3,8 @@ import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
 
+
+
 const Allwork: React.FC = () => {
   const [works, setWorks] = useState<any[]>([]);
   const [title, setTitle] = useState<string>("");
@@ -33,8 +35,8 @@ const Allwork: React.FC = () => {
       <li key={index}>
         <h3>{work.title}</h3>
         <p>{work.explanation}</p>
-        {work.work_image && work.work_image.length > 0 ? (
-          <img src={work.work_image[0].file_name} alt='Work Image' />
+        {work.work_image.file_name ? (
+          <img src={work.work_image.file_name} alt='Work Image' />
         ) : (
           <p>No image available</p>
         )}

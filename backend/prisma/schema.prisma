@@ -22,17 +22,30 @@ model Authority {
 }
 
 model User {
-  id                 Int       @id @default(autoincrement())
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  login_id           String    @unique
-  email_address      String    @unique
-  password           String
-  name               String
-  authority_id       Int
-  authority          Authority @relation(fields: [authority_id], references: [id])
+  id                     Int           @id @default(autoincrement())
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  login_id               String        @unique
+  email_address          String        @unique
+  password               String
+  name                   String
+  authority_id           Int
+  authority              Authority     @relation(fields: [authority_id], references: [id])
+  user_image             User_image?
+  password_reset_token   String?
+  password_reset_expires DateTime?
   works              Work[]
   works_Book_mark    Book_mark[]
+ }
+
+model User_image {
+  id                Int       @id @default(autoincrement())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  file_name         String?
+  another_file_name String?
+  user_id           Int       @unique
+  user              User      @relation(fields: [user_id], references: [id])
 }
 
 model Work {

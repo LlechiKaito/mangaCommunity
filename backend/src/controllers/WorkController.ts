@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 export const getWorks = async (req: Request, res: Response) => {
     try {
         // クエリパラメータから検索条件を取得
-        const { title, explanation, fileName } = req.query;
+        const { title } = req.query;
 
         // whereオブジェクトを初期化
         const where: any = {};
@@ -81,6 +81,7 @@ export const createWork = async (req: Request, res: Response) => {
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
         const user_id: number = req.session.user_id;
+        const tag: string = req.body.tag;
         const workImage: string = req.body.work_image;
 
         const work = await prisma.work.create({
@@ -93,6 +94,22 @@ export const createWork = async (req: Request, res: Response) => {
                 },
             },
         });
+
+        if (tag) {
+            const existingTag = await prisma.tag.findFirst({
+                where: { tag_name: tag },
+            });
+
+            if (existingTag) {
+                await prisma.workTag.create({
+                    data: {
+                        work_id: work.id,
+                        tag_id: existingTag.id,
+                    },
+                });
+            }
+        }
+        
         res.status(201).json(work);
     } catch (error) {
         console.error("Error fetching works", error);
