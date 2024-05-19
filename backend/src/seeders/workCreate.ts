@@ -8,16 +8,17 @@ async function main() {
         data: {
             explanation: 'first work',
             user_id: 1,
+            title: 'naruto',
         }
     })
 
     //workimages新規作成
     const workImagesData = [
-        { file_name: 'image1.jpg', work_id: newWork.id },
+        { file_name: 'https://placehold.jp/300x200.png', work_id: newWork.id },
     ]
 
     await Promise.all(workImagesData.map(async (imageData) => {
-        await prisma.workImage.create({
+        await prisma.work_image.create({
             data: imageData,
         })
     }))

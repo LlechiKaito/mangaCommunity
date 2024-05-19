@@ -4,10 +4,14 @@ import Login from './components/users/Login.tsx';
 import Register from './components/users/Register.tsx';
 import Profile from './components/users/Profile.tsx';
 import Top from './components/Top.tsx';
+import Allwork from './components/works/AllWork.tsx';
+import Creatework from './components/works/CreateWork.tsx';
+import Showwork from './components/works/ShowWork.tsx'
 import ForgetLoginId from './components/users/ForgetLoginId.tsx';
 import ForgetPassword from './components/users/ForgetPassword.tsx';
 import AfterSendEmail from './components/users/AfterSendMail.tsx';
 import ResetPassword from './components/users/ResetPassword.tsx';
+
 
 export const App: React.FC = () => {
   return (
@@ -20,6 +24,9 @@ export const App: React.FC = () => {
         <Route path="/users/after-send-email" element={<AfterSendEmail />} />
         <Route path="/users/reset-password" element={<ResetPassword />} />
         <Route path="/users/register" element={<Register />} />
+        <Route path="/works" element={<Allwork />} />
+        <Route path="/works/create" element={<Creatework />} />
+        <Route path='/works/:id' element={<Showwork />} />
         <Route path="/users/:id" element={<Profile />} />
       </Routes>
     </BrowserRouter>

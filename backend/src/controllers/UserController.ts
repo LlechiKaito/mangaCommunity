@@ -140,6 +140,7 @@ export const loginUser = async (req: Request, res: Response) => {
         if (passwordIsValid){
             req.session.user_id = user.id;
             req.session.name = user.name;
+            req.session.authority_id = user.authority_id;
             req.session.save();
             res.status(200).json(user);
         } else {
@@ -443,3 +444,23 @@ export const resetPassword = async (req: Request, res: Response) => {
         res.status(500).send('Internal Server Error');
     }
 }
+
+export const getUserProfile = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { authority_id: true, name: true } // ③authority_idとnameを取得
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

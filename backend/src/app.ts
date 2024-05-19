@@ -1,6 +1,9 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
-import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword } from './controllers/UserController';
+import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
+import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
+import { doBookMark, undoBookMark } from './controllers/BookMarkController';
+import { createTag, getTags } from './controllers/TagController';
 import cors from "cors";
 import { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
@@ -25,6 +28,7 @@ declare module 'express-session' {
     interface SessionData {
         user_id: number;
         name: string;
+        authority_id: number;
     }
 }
 
@@ -49,9 +53,29 @@ app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
+//work関係のルーティング
+app.get('/works', getWorks);
+app.post('/works/create', createWork);
+app.get('/works/create', getTags);
+app.get('/works/:id', showWork);
+app.delete('/works/:id', (req, res, next) => {
+    if (req.query.action === 'undoBookmark') {
+        undoBookMark(req, res);
+    } else {
+        deleteWork(req, res);
+    }
+});
+app.put('/works/:id',updateWork);
+
+//bookmarkのルーティング
+app.post('/works/:id', doBookMark);
+
 app.post('/users/forget/login_id', forgetLoginId);
 app.post('/users/forget/password', forgetPassword);
 app.put('/users/reset-password', resetPassword);
+app.get('/users/:id', getUserProfile);
+//Tagのルーティング
+app.post('/users/:id', createTag);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

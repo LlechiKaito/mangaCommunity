@@ -34,7 +34,8 @@ model User {
   user_image             User_image?
   password_reset_token   String?
   password_reset_expires DateTime?
-  work                   Work[]
+  works              Work[]
+  Book_mark    Book_mark[]
  }
 
 model User_image {
@@ -48,14 +49,16 @@ model User_image {
 }
 
 model Work {
-  id            Int       @id @default(autoincrement())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id            Int          @id @default(autoincrement())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   title         String    
   explanation   String    
   user_id       Int 
-  user          User      @relation(fields: [user_id], references: [id])
-  workimage     Work_image?
+  user          User         @relation(fields: [user_id], references: [id])
+  work_image    Work_image?
+  users         Book_mark[]
+  work_tags     WorkTag[]    // WorkとWorkTagの1対多の関係を定義
 }
 
 model Work_image {
@@ -64,5 +67,38 @@ model Work_image {
   updatedAt     DateTime  @updatedAt
   file_name     String    
   work_id       Int       @unique
-  work          Work      @relation(fields: [work_id], references: [id])
+  work          Work      @relation(fields: [work_id], references: [id], onDelete: Cascade)
+}
+
+model Book_mark {
+  user         User       @relation(fields: [user_id], references: [id])
+  user_id      Int
+  work         Work       @relation(fields: [work_id], references: [id], onDelete: Cascade)
+  work_id      Int
+  assignedAt   DateTime   @default(now())
+
+  @@id([user_id, work_id])
+}
+
+// 新しいTagテーブル
+model Tag {
+  id          Int       @id @default(autoincrement())
+  tag_name    String
+  is_deleted  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  work_tags   WorkTag[] // TagとWorkTagの1対多の関係を定義
+}
+
+// 新しい中間テーブルWorkTag
+model WorkTag {
+  id          Int       @id @default(autoincrement())
+  work_id     Int
+  tag_id      Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  work        Work      @relation(fields: [work_id], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@unique([work_id, tag_id])
 }
