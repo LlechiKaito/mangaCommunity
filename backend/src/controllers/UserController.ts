@@ -141,7 +141,6 @@ export const loginUser = async (req: Request, res: Response) => {
             req.session.user_id = user.id;
             req.session.name = user.name;
             req.session.authority_id = user.authority_id;
-            req.session.save();
             res.status(200).json(user);
         } else {
             res.status(400).json({ error_password: "このユーザーIDのパスワードが間違えています。", user: user });

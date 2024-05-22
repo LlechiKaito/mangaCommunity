@@ -4,9 +4,9 @@ import Login from './components/users/Login.tsx';
 import Register from './components/users/Register.tsx';
 import Profile from './components/users/Profile.tsx';
 import Top from './components/Top.tsx';
-import Allwork from './components/works/AllWork.tsx';
-import Creatework from './components/works/CreateWork.tsx';
-import Showwork from './components/works/ShowWork.tsx'
+import AllWork from './components/works/Index.tsx';
+import CreateWork from './components/works/Create.tsx';
+import ShowWork from './components/works/Show.tsx';
 import ForgetLoginId from './components/users/ForgetLoginId.tsx';
 import ForgetPassword from './components/users/ForgetPassword.tsx';
 import AfterSendEmail from './components/users/AfterSendMail.tsx';
@@ -24,9 +24,9 @@ export const App: React.FC = () => {
         <Route path="/users/after-send-email" element={<AfterSendEmail />} />
         <Route path="/users/reset-password" element={<ResetPassword />} />
         <Route path="/users/register" element={<Register />} />
-        <Route path="/works" element={<Allwork />} />
-        <Route path="/works/create" element={<Creatework />} />
-        <Route path='/works/:id' element={<Showwork />} />
+        <Route path="/works" element={<AllWork />} />
+        <Route path="/works/create" element={<CreateWork />} />
+        <Route path='/works/:id' element={<ShowWork />} />
         <Route path="/users/:id" element={<Profile />} />
       </Routes>
     </BrowserRouter>
