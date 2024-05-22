@@ -6,14 +6,15 @@ import { Navigate, useParams, useNavigate } from 'react-router-dom';
 type Work = {
   id: string;
   explanation: string;
+  user_id: number;
   title: string;
+  work_image: {
+    file_name:string;
+  };
 };
 
-type WorkImage = {
-  file_name: string;
-}
 
-const Showwork: React.FC = () => {
+const ShowWork: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
   //ここから
@@ -21,7 +22,7 @@ const Showwork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
 
-  const [workImage, setWorkImage] = useState<WorkImage | null>(null);
+  const [workImage, setWorkImage] = useState<File | null>(null);
   const [file_name, setFile_name] = useState<string>(' ');
   //ここまで重要（https://qiita.com/seira/items/f063e262b1d57d7e78b4)
 
@@ -57,7 +58,16 @@ const Showwork: React.FC = () => {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`/works/${id}`, { explanation, title, file_name: workImage?.file_name }); // 更新データを送信
+      const formData = new FormData();
+      formData.append("explanation", explanation);
+      formData.append("title", title);
+      formData.append("image", workImage as File);
+
+      const response = await axios.put(`/works/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       navigate('/works');
     } catch (error) {
       console.error('Error updating work:', error)
@@ -84,17 +94,19 @@ const Showwork: React.FC = () => {
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setWorkImage(event.target.files[0]);
+    }
+  }
+
   return (
     <div>
       {work ? (
         <div>
           <h2>{work.title}</h2>
           <p>{work.explanation}</p>
-          {workImage ? (
-            <img src={workImage.file_name} alt="Work Image" />
-          ) : (
-            <p>No image available</p>
-          )}
+          <img src={`http://localhost:8080/public/images/works/${work.work_image.file_name}`} alt="noImage.jpeg" />
           <button onClick={handleDelete}>Delete Work</button>
 
           <h1>Update Work</h1>
@@ -118,12 +130,11 @@ const Showwork: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="workimage">Workimage:</label>
+              <label htmlFor="workImage">Work Image:</label>
               <input
-                type="text"
-                id="workimage"
-                value={file_name}
-                onChange={(e) => setFile_name(e.target.value)}
+                type="file"
+                id="workImage"
+                onChange={handleFileChange}
               />
             </div>
 
@@ -136,10 +147,11 @@ const Showwork: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
+      <a href="/">トップへ</a>
 
 
     </div>
 
   );
 };
-export default Showwork;
+export default ShowWork;

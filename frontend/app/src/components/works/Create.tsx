@@ -3,19 +3,24 @@ import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
 
-const Creatework: React.FC = () => {
+const CreateWork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
-  const [workImage,setWorkImage] = useState<string>('');
+  const [workImage,setWorkImage] = useState<File | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await axios.post('./create', {
-        explanation: explanation,
-        title: title,
-        work_image: workImage,
+      const formData = new FormData();
+      formData.append("explanation", explanation);
+      formData.append("title", title);
+      formData.append("image", workImage as File);
+
+      const response = await axios.post('./create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
       console.log('Work created:', response.data);
       navigate('/works');
@@ -23,6 +28,12 @@ const Creatework: React.FC = () => {
       console.error('Error creating work:', error);
     }
   };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setWorkImage(event.target.files[0]);
+    }
+  }
   
   return (
     <div>
@@ -49,17 +60,16 @@ const Creatework: React.FC = () => {
         <div>
           <label htmlFor="workImage">Work Image:</label>
           <input
-            type="text"
+            type="file"
             id="workImage"
-            value={workImage}
-            onChange={(e) => setWorkImage(e.target.value)}
+            onChange={handleFileChange}
           />
         </div>
         <button type="submit">Create Work</button>
       </form>
+      <a href="/">トップへ</a>
     </div>
   );
 };
   
-  export default Creatework;
-  
+export default CreateWork;

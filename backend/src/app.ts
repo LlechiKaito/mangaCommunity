@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
 import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
-import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
+import { createWork, getWorks, showWork, deleteWork, updateWork, workImageUpload } from './controllers/WorkController';
 import { doBookMark, undoBookMark } from './controllers/BookMarkController';
 import { createTag, getTags } from './controllers/TagController';
 import cors from "cors";
@@ -37,16 +37,19 @@ const secretKey = randomBytes(32).toString('hex');
 // セッションの設定
 app.use(session({
     secret: process.env.SESSION_SECRET || secretKey,
-    resave: false,
+    resave: true,
     saveUninitialized: true,
     cookie: {
     //     下記がエラーの原因だがわからん
-    //     secure: true, // HTTPSを使用する
-    //     httpOnly: true, // XSS攻撃を防ぐ
-    //     sameSite: 'strict', // CSRF攻撃を防ぐ
+        secure: false, // HTTPSを使用する
+        httpOnly: true, // XSS攻撃を防ぐ
+        sameSite: 'strict', // CSRF攻撃を防ぐ
         maxAge: 2 * 60 * 60 * 1000 // セッションの有効期限を設定（例: 2時間）
     }
 }));
+
+// react側で画像を表示させるために必要なもの
+app.use('/api/images', express.static('/backend/public/images'));
 
 // user関係のルーティング
 app.get('/users', getUsers);
@@ -55,17 +58,17 @@ app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
 //work関係のルーティング
 app.get('/works', getWorks);
-app.post('/works/create', createWork);
+app.post('/works/create', workImageUpload.single('image'), createWork);
 app.get('/works/create', getTags);
 app.get('/works/:id', showWork);
-app.delete('/works/:id', (req, res, next) => {
+app.delete('/works/:id', (req: Request, res: Response) => {
     if (req.query.action === 'undoBookmark') {
         undoBookMark(req, res);
     } else {
         deleteWork(req, res);
     }
 });
-app.put('/works/:id',updateWork);
+app.put('/works/:id', workImageUpload.single('image'), updateWork);
 
 //bookmarkのルーティング
 app.post('/works/:id', doBookMark);

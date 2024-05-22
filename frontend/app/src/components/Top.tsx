@@ -8,6 +8,7 @@ const Top: React.FC = () => {
     <div className="App">
       <Header />
       <h1 className="bg-gray-300">Topページ</h1>
+      <a href="/works">作品一覧へ</a>
     </div>
   );
 }

@@ -34,8 +34,8 @@ model User {
   user_image             User_image?
   password_reset_token   String?
   password_reset_expires DateTime?
-  works              Work[]
-  Book_mark    Book_mark[]
+  works                  Work[]
+  Book_marks             Book_mark[]
  }
 
 model User_image {
@@ -57,7 +57,7 @@ model Work {
   user_id       Int 
   user          User         @relation(fields: [user_id], references: [id])
   work_image    Work_image?
-  users         Book_mark[]
+  book_marks    Book_mark[]
   work_tags     WorkTag[]    // WorkとWorkTagの1対多の関係を定義
 }
 
@@ -71,13 +71,14 @@ model Work_image {
 }
 
 model Book_mark {
+  id          Int       @id @default(autoincrement())
   user         User       @relation(fields: [user_id], references: [id])
   user_id      Int
   work         Work       @relation(fields: [work_id], references: [id], onDelete: Cascade)
   work_id      Int
   assignedAt   DateTime   @default(now())
 
-  @@id([user_id, work_id])
+  @@unique([user_id, work_id])
 }
 
 // 新しいTagテーブル
