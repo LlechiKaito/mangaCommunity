@@ -11,12 +11,11 @@ const Creatework: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [workImage, setWorkImage] = useState<string>('');
-  const [tags, setTags] = useState<any[]>([]);
-  const [selectedTag, setSelectedTag] = useState<string>('');
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // タグの一覧を取得する関数を呼び出す
     fetchTags();
   }, []);
 
@@ -36,13 +35,18 @@ const Creatework: React.FC = () => {
         explanation: explanation,
         title: title,
         work_image: workImage,
-        tag: selectedTag,
+        tags: selectedTags, // 複数のタグを送信
       });
       console.log('Work created:', response.data);
       navigate('/works');
     } catch (error) {
       console.error('Error creating work:', error);
     }
+  };
+
+  const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setSelectedTags(selectedOptions);
   };
 
   return (
@@ -77,13 +81,13 @@ const Creatework: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="Tag">Tag:</label>
+          <label htmlFor="tag">Tag:</label>
           <select
             id="tag"
-            value={selectedTag}
-            onChange={(e) => setSelectedTag(e.target.value)}
+            multiple
+            value={selectedTags}
+            onChange={handleTagChange}
           >
-            <option value="">Select a tag</option>
             {tags.map((tag, index) => (
               <option key={index} value={tag.tag_name}>{tag.tag_name}</option>
             ))}

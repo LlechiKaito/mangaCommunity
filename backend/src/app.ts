@@ -1,4 +1,5 @@
 import express from 'express';
+import { PrismaClient } from '@prisma/client';
 import { Express, Request, Response } from 'express'; // Import types
 import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
 import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
@@ -18,6 +19,8 @@ const corsOptions: CorsOptions ={
     origin: "http://localhost:3000",
     credentials: true,
 };
+
+const prisma = new PrismaClient();
 
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
@@ -76,6 +79,18 @@ app.put('/users/reset-password', resetPassword);
 app.get('/users/:id', getUserProfile);
 //Tagのルーティング
 app.post('/users/:id', createTag);
+
+// 新しい /tags エンドポイントを追加
+app.get('/tags', async (req: Request, res: Response) => {
+    try {
+      const tags = await prisma.tag.findMany();
+      res.json(tags);
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

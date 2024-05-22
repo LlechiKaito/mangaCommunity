@@ -35,6 +35,9 @@ const Login: React.FC = () => {
         }
         localStorage.setItem(userIdKey, JSON.stringify(userItem));
         localStorage.setItem(nameKey, JSON.stringify(nameItem));
+
+        localStorage.clear();
+        
         navigate(redirectUrl);
       });
     } catch (error) {

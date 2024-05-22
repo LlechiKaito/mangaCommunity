@@ -4,15 +4,22 @@ import '../../index.css';
 import { useNavigate } from 'react-router-dom';
 
 
+type Tag = {
+  id: number;
+  tag_name: string;
+};
 
 const Allwork: React.FC = () => {
   const [works, setWorks] = useState<any[]>([]);
   const [title, setTitle] = useState<string>("");
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchWorks();
+    fetchTags();
   }, []); // ページがロードされたときにレコードを取得する
 
   const fetchWorks = async (searchParams = {}) => {
@@ -24,11 +31,28 @@ const Allwork: React.FC = () => {
     }
   };
 
+  const fetchTags = async () => {
+    try {
+      const response = await axios.get('/tags');
+      setTags(response.data);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  };
+
+
   const handleSearch = () => {
     const searchParams: any = {};
     if (title) searchParams.title = title;
+    if (selectedTags.length > 0) searchParams.tag_names = selectedTags.join(',');
     fetchWorks(searchParams);
   };
+
+  const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setSelectedTags(selectedOptions);
+  };
+
 
   const renderWorks = () => {
     return works.map((work, index) => (
@@ -54,6 +78,13 @@ const Allwork: React.FC = () => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
+        <select multiple value={selectedTags} onChange={handleTagChange}>
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.tag_name}>
+              {tag.tag_name}
+            </option>
+          ))}
+        </select>
         <button onClick={handleSearch}>Search</button>
       </div>
       <button onClick={() => navigate('./create')}>Create New Work</button>
