@@ -12,20 +12,36 @@ const prisma = new PrismaClient();
 //全表示//
 export const getWorks = async (req: Request, res: Response) => {
     try {
-        // クエリパラメータから検索条件を取得
-        const { title } = req.query;
+        const { title, tag_names } = req.query;
 
-        // whereオブジェクトを初期化
         const where: any = {};
 
-        // titleが指定されている場合のフィルタリング
         if (title) {
             where.title = {
                 contains: title as string
             };
         }
 
-        // データベースからデータを取得
+        if (tag_names) {
+            const tagsArray = Array.isArray(tag_names) ? tag_names : [tag_names];
+            const tagIds = await prisma.tag.findMany({
+                where: {
+                    tag_name: { in: tagsArray as string[] }
+                },
+                select: { id: true }
+            });
+
+            const tagIdsArray = tagIds.map(tag => tag.id);
+
+            if (tagIdsArray.length > 0) {
+                where.work_tags = {
+                    some: {
+                        tag_id: { in: tagIdsArray }
+                    }
+                };
+            }
+        }
+
         const works = await prisma.work.findMany({
             where,
             select: {
@@ -36,11 +52,19 @@ export const getWorks = async (req: Request, res: Response) => {
                     select: {
                         file_name: true
                     }
+                },
+                work_tags: {
+                    select: {
+                        tag: {
+                            select: {
+                                tag_name: true
+                            }
+                        }
+                    }
                 }
             }
         });
 
-        // 結果をレスポンスとして返す
         res.json(works);
     } catch (error) {
         console.error("Error fetching works:", error);
@@ -110,7 +134,7 @@ export const createWork = async (req: Request, res: Response) => {
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
         const user_id: number = req.session.user_id;
-        const tag: string = req.body.tag;
+        const tags: string[] = req.body.tag;
 
         if (typeof req.file === "undefined"){
             res.status(400).json({error_message: "画像ファイルがありません。"})
@@ -129,19 +153,23 @@ export const createWork = async (req: Request, res: Response) => {
             },
         });
 
-        if (tag) {
-            const existingTag = await prisma.tag.findFirst({
-                where: { tag_name: tag },
+        if (tags) {
+            const tagPromises = tags.map(async (tagName) => {
+                const existingTag = await prisma.tag.findFirst({
+                    where: { tag_name: tagName },
+                });
+
+                if (existingTag) {
+                    await prisma.workTag.create({
+                        data: {
+                            work_id: work.id,
+                            tag_id: existingTag.id,
+                        },
+                    });
+                }
             });
 
-            if (existingTag) {
-                await prisma.workTag.create({
-                    data: {
-                        work_id: work.id,
-                        tag_id: existingTag.id,
-                    },
-                });
-            }
+            await Promise.all(tagPromises);
         }
         
         res.status(201).json(work);

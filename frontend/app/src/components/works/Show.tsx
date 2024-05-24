@@ -106,7 +106,7 @@ const ShowWork: React.FC = () => {
         <div>
           <h2>{work.title}</h2>
           <p>{work.explanation}</p>
-          <img src={`http://localhost:8080/public/images/works/${work.work_image.file_name}`} alt="noImage.jpeg" />
+          <img src={`http://localhost:8080/api/images/works/${work.title}/${work.work_image.file_name}`} alt="noImage.jpeg" />
           <button onClick={handleDelete}>Delete Work</button>
 
           <h1>Update Work</h1>
