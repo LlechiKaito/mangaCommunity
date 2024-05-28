@@ -4,7 +4,10 @@ import bcrypt, { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import { stringify } from 'querystring';
 
-const prisma = new PrismaClient();
+// prismaのログの確認のためのやつ
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error']
+});
 
 export const createTag = async (req: Request, res: Response) => {
     // バリデーションルール

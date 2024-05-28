@@ -58,6 +58,13 @@ services:
     networks:
       - react_express
 
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - react_express
 
 volumes:
   mysqldata:
