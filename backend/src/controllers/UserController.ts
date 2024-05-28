@@ -7,7 +7,10 @@ import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
 
-const prisma = new PrismaClient();
+// prismaのログの確認のためのやつ
+const prisma = new PrismaClient({
+    log: ['query', 'info', 'warn', 'error']
+});
 
 // 全表示
 export const getUsers = async (req: Request, res: Response) => {
@@ -28,7 +31,7 @@ export const getUsers = async (req: Request, res: Response) => {
 export const createUser = async (req: Request, res: Response) => {
     try {
         if(req.session.user_id){
-            res.status(403).json({ error_login: "既にログインしています。" });
+            res.status(403).json({ error: "既にログインしています。" });
             return;
         }
 
@@ -118,7 +121,7 @@ export const loginUser = async (req: Request, res: Response) => {
     try {
 
         if(req.session.user_id){
-            res.status(403).json({ error_login: "既にログインしています。" });
+            res.status(403).json({ error: "既にログインしています。" });
             return;
         }
 
@@ -132,7 +135,7 @@ export const loginUser = async (req: Request, res: Response) => {
         });
 
         if (!user){
-            res.status(400).json({ error_message: "このユーザーIDは存在しません。" });
+            res.status(400).json({ error: "このユーザーIDは存在しません。" });
             return;
         }
 
@@ -154,7 +157,7 @@ export const loginUser = async (req: Request, res: Response) => {
 export const logoutUser = async (req: Request, res: Response) => {
     try {
         if (!req.session.user_id) {
-            res.status(403).json({ error_logout: "ログインしていません。" });
+            res.status(403).json({ error: "ログインしていません。" });
             return;
         }
         req.session.destroy((error) => {
@@ -169,7 +172,7 @@ export const logoutUser = async (req: Request, res: Response) => {
 export const forgetLoginId = async (req: Request, res: Response) => {
     try {
         if (req.session.user_id) {
-            res.status(403).json({ error_login: "既にログインしています。" });
+            res.status(403).json({ error: "既にログインしています。" });
             return;
         }
 
@@ -184,7 +187,7 @@ export const forgetLoginId = async (req: Request, res: Response) => {
         });
 
         if (!user){
-            res.status(400).json({error_email: "このメールアドレスに一致するユーザーは存在しません。"});
+            res.status(400).json({error: "このメールアドレスに一致するユーザーは存在しません。"});
             return;
         }
 
@@ -239,7 +242,7 @@ export const forgetLoginId = async (req: Request, res: Response) => {
 export const forgetPassword = async (req: Request, res: Response) => {
     try {
         if (req.session.user_id) {
-            res.status(403).json({ error_login: "既にログインしています。" });
+            res.status(403).json({ error: "既にログインしています。" });
             return;
         }
 
@@ -254,7 +257,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
         });
 
         if (!user){
-            res.status(400).json({error_email: "このメールアドレスに一致するユーザーは存在しません。"});
+            res.status(400).json({error: "このメールアドレスに一致するユーザーは存在しません。"});
             return;
         }
 
@@ -331,7 +334,7 @@ interface DecodedToken {
 export const resetPassword = async (req: Request, res: Response) => {
     try {
         if (req.session.user_id) {
-            res.status(403).json({ error_login: "既にログインしています。" });
+            res.status(403).json({ error: "既にログインしています。" });
             return;
         }
 

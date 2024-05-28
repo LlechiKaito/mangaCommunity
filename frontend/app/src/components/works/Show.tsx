@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
+import CreateBookmark from '.././bookMarks/create.tsx';
+import Header, { getLocalStorage } from '.././shared/Header.tsx';
 
 type Work = {
-  id: string;
+  id: number;
   explanation: string;
   user_id: number;
   title: string;
   work_image: {
-    file_name:string;
+    file_name: string;
   };
 };
 
@@ -18,15 +20,12 @@ const ShowWork: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
   //ここから
-  const [work, setWork] = useState<Work | null>(null);
+  const [work, setWork] = useState<Work>();
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
 
-  const [workImage, setWorkImage] = useState<File | null>(null);
-  const [file_name, setFile_name] = useState<string>(' ');
+  const [workImage, setWorkImage] = useState<File>();
   //ここまで重要（https://qiita.com/seira/items/f063e262b1d57d7e78b4)
-
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(false); //未フォローorフォロー済みの管理
 
   const navigate = useNavigate();
 
@@ -34,11 +33,7 @@ const ShowWork: React.FC = () => {
     const fetchWork = async () => {
       try {
         const response = await axios.get(`/works/${id}`);
-
         setWork(response.data.work); 
-        setWorkImage(response.data.work_image);
-        setIsBookmarked(response.data.isBookmarked);
-
       } catch (error) {
         console.error('Error fetching work:', error);
       }
@@ -47,7 +42,8 @@ const ShowWork: React.FC = () => {
     fetchWork();
   }, [id]);
 
-  const handleDelete = async () => {
+  const handleDelete = async (event: React.FormEvent) => {
+    event.preventDefault();
     try {
       await axios.delete(`/works/${id}`);
       navigate('/works');
@@ -56,14 +52,15 @@ const ShowWork: React.FC = () => {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (event: React.FormEvent) => {
+    event.preventDefault();
     try {
       const formData = new FormData();
       formData.append("explanation", explanation);
       formData.append("title", title);
       formData.append("image", workImage as File);
 
-      const response = await axios.put(`/works/${id}`, formData, {
+      await axios.put(`/works/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -71,26 +68,6 @@ const ShowWork: React.FC = () => {
       navigate('/works');
     } catch (error) {
       console.error('Error updating work:', error)
-    }
-  };
-
-  const doBookMark = async () => {
-    try {
-      setIsBookmarked(true);
-      await axios.post(`/works/${id}`);
-      navigate(`/works/${id}`);
-    } catch (error) {
-      console.error('Error doing Bookmark:', error)
-    }
-  };
-
-  const undoBookMark = async () => {
-    try {
-      setIsBookmarked(false);
-      await axios.delete(`/works/${id}?action=undoBookmark`);
-      navigate(`/works/${id}`);
-    } catch (error) {
-      console.error('Error undoing Bookmark', error)
     }
   };
 
@@ -102,13 +79,14 @@ const ShowWork: React.FC = () => {
 
   return (
     <div>
+      <Header />
       {work ? (
         <div>
           <h2>{work.title}</h2>
           <p>{work.explanation}</p>
           <img src={`http://localhost:8080/public/images/works/${work.work_image.file_name}`} alt="noImage.jpeg" />
           <button onClick={handleDelete}>Delete Work</button>
-
+          <CreateBookmark id={work.id} />
           <h1>Update Work</h1>
           <form onSubmit={handleUpdate}>
             <div>
@@ -130,6 +108,7 @@ const ShowWork: React.FC = () => {
               />
             </div>
             <div>
+              {/* 編集に失敗してファイルをもう一度変更する際に保持したい */}
               <label htmlFor="workImage">Work Image:</label>
               <input
                 type="file"
@@ -140,16 +119,10 @@ const ShowWork: React.FC = () => {
 
             <button type="submit">Update Work</button>
           </form>
-          <button onClick={isBookmarked ? undoBookMark : doBookMark}>
-            {isBookmarked ? "ブックマーク解除" : "ブックマークする"}
-          </button>
         </div>
       ) : (
         <p>Loading...</p>
       )}
-      <a href="/">トップへ</a>
-
-
     </div>
 
   );

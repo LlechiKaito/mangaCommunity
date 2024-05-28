@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
+import Header, { getLocalStorage } from '.././shared/Header.tsx';
 
 const CreateWork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
-  const [workImage,setWorkImage] = useState<File | null>(null);
+  const [workImage,setWorkImage] = useState<File>();
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -37,6 +38,7 @@ const CreateWork: React.FC = () => {
   
   return (
     <div>
+      <Header />
       <h1>Create Work</h1>
       <form onSubmit={handleSubmit}>
         <div>

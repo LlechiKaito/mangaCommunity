@@ -1,7 +1,8 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
 import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
-import { createWork, getWorks, showWork, deleteWork, updateWork, workImageUpload } from './controllers/WorkController';
+import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
+import { workImageUpload } from './controllers/ImageController';
 import { doBookMark, undoBookMark } from './controllers/BookMarkController';
 import { createTag, getTags } from './controllers/TagController';
 import cors from "cors";
@@ -9,6 +10,9 @@ import { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import {randomBytes} from "crypto";
 import session from 'express-session';
+import Redis from 'ioredis';
+// import connectRedis from 'connect-redis';
+import RedisStore from 'connect-redis';
 
 const app: Express = express();
 // app.set("trust proxy", true);
@@ -34,11 +38,29 @@ declare module 'express-session' {
 
 const secretKey = randomBytes(32).toString('hex');
 
+// RedisStore を初期化します
+// const RedisStore = connectRedis(session);
+
+// Redis クライアントを作成します
+const redisClient = new Redis({
+  host: "redis",
+  port: 6379,
+});
+
+// Redis クライアントに接続します
+redisClient.connect().catch(console.error);
+
+// Redis ストアを作成します
+const redisStore = new RedisStore({
+  client: redisClient,
+});
+
 // セッションの設定
 app.use(session({
     secret: process.env.SESSION_SECRET || secretKey,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
+    store: redisStore,
     cookie: {
     //     下記がエラーの原因だがわからん
         secure: false, // HTTPSを使用する
@@ -61,17 +83,12 @@ app.get('/works', getWorks);
 app.post('/works/create', workImageUpload.single('image'), createWork);
 app.get('/works/create', getTags);
 app.get('/works/:id', showWork);
-app.delete('/works/:id', (req: Request, res: Response) => {
-    if (req.query.action === 'undoBookmark') {
-        undoBookMark(req, res);
-    } else {
-        deleteWork(req, res);
-    }
-});
+app.delete('/works/:id', deleteWork);
 app.put('/works/:id', workImageUpload.single('image'), updateWork);
 
 //bookmarkのルーティング
-app.post('/works/:id', doBookMark);
+app.post('/book_marks/:id', doBookMark);
+app.delete('/book_marks/:id', undoBookMark);
 
 app.post('/users/forget/login_id', forgetLoginId);
 app.post('/users/forget/password', forgetPassword);

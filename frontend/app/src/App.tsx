@@ -12,7 +12,6 @@ import ForgetPassword from './components/users/ForgetPassword.tsx';
 import AfterSendEmail from './components/users/AfterSendMail.tsx';
 import ResetPassword from './components/users/ResetPassword.tsx';
 
-
 export const App: React.FC = () => {
   return (
     <BrowserRouter>

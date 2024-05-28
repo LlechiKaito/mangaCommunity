@@ -71,7 +71,7 @@ model Work_image {
 }
 
 model Book_mark {
-  id          Int       @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   user         User       @relation(fields: [user_id], references: [id])
   user_id      Int
   work         Work       @relation(fields: [work_id], references: [id], onDelete: Cascade)
