@@ -84,7 +84,7 @@ model Book_mark {
 // 新しいTagテーブル
 model Tag {
   id          Int       @id @default(autoincrement())
-  tag_name    String
+  tag_name    String    @unique
   is_deleted  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

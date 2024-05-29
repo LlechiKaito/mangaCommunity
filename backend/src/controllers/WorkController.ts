@@ -6,6 +6,7 @@ import { stringify } from 'querystring';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { searchByTitle, searchByTags } from './SearchController';
 
 const prisma = new PrismaClient();
 
@@ -17,28 +18,14 @@ export const getWorks = async (req: Request, res: Response) => {
         const where: any = {};
 
         if (title) {
-            where.title = {
-                contains: title as string
-            };
+            const titleCondition = await searchByTitle(title as string);
+            where.title = titleCondition.title;
         }
 
         if (tag_names) {
-            const tagsArray = Array.isArray(tag_names) ? tag_names : [tag_names];
-            const tagIds = await prisma.tag.findMany({
-                where: {
-                    tag_name: { in: tagsArray as string[] }
-                },
-                select: { id: true }
-            });
-
-            const tagIdsArray = tagIds.map(tag => tag.id);
-
-            if (tagIdsArray.length > 0) {
-                where.work_tags = {
-                    some: {
-                        tag_id: { in: tagIdsArray }
-                    }
-                };
+            const tagsConditions = await searchByTags(tag_names as string | string[]);
+            if (Object.keys(tagsConditions).length > 0) {
+                where.AND = tagsConditions.AND;
             }
         }
 
@@ -50,19 +37,19 @@ export const getWorks = async (req: Request, res: Response) => {
                 explanation: true,
                 work_image: {
                     select: {
-                        file_name: true
-                    }
+                        file_name: true,
+                    },
                 },
                 work_tags: {
                     select: {
                         tag: {
                             select: {
-                                tag_name: true
-                            }
-                        }
-                    }
-                }
-            }
+                                tag_name: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
 
         res.json(works);
@@ -71,6 +58,9 @@ export const getWorks = async (req: Request, res: Response) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
+
+
 
 const storage = multer.diskStorage({
     destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
@@ -134,11 +124,11 @@ export const createWork = async (req: Request, res: Response) => {
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
         const user_id: number = req.session.user_id;
-        const tags: string[] = req.body.tag;
+        const tags: string[] = req.body.tags;
 
-        if (typeof req.file === "undefined"){
-            res.status(400).json({error_message: "画像ファイルがありません。"})
-            return ;
+        if (typeof req.file === "undefined") {
+            res.status(400).json({ error_message: "画像ファイルがありません。" });
+            return;
         }
         const fileName: string = req.file.filename;
 
@@ -148,38 +138,40 @@ export const createWork = async (req: Request, res: Response) => {
                 user_id: user_id,
                 title: title,
                 work_image: {
-                    create: { file_name:  fileName}
+                    create: { file_name: fileName }
                 },
             },
         });
 
-        if (tags) {
+        if (tags && tags.length > 0) {
             const tagPromises = tags.map(async (tagName) => {
-                const existingTag = await prisma.tag.findFirst({
+                let tag = await prisma.tag.findFirst({
                     where: { tag_name: tagName },
                 });
 
-                if (existingTag) {
-                    await prisma.workTag.create({
-                        data: {
-                            work_id: work.id,
-                            tag_id: existingTag.id,
-                        },
+                if (!tag) {
+                    tag = await prisma.tag.create({
+                        data: { tag_name: tagName },
                     });
                 }
+
+                await prisma.workTag.create({
+                    data: {
+                        work_id: work.id,
+                        tag_id: tag.id,
+                    },
+                });
             });
 
             await Promise.all(tagPromises);
         }
-        
+
         res.status(201).json(work);
     } catch (error) {
-        
-        console.error("Error fetching works", error);
+        console.error("Error creating work:", error);
         res.status(500).send('Internal Server Error');
     }
 };
-
 export const showWork = async (req: Request, res: Response) => {
     try {
         if (!req.session.user_id) {
@@ -202,6 +194,11 @@ export const showWork = async (req: Request, res: Response) => {
                         file_name: true
                     }
                 },
+                work_tags: {
+                    include: {
+                        tag: true // Include the Tag details for each WorkTag
+                    }
+                }
             },
         });
 
@@ -290,17 +287,18 @@ export const updateWork = async (req: Request, res: Response) => {
         }
 
         await body('explanation')
+            .optional()
             .isString().withMessage('説明は文字列である必要があります。')
             .isLength({ max: 70000 }).withMessage('説明は70000文字以下でなければなりません。')
             .run(req);
 
         await body('title')
-            .notEmpty().withMessage('タイトルは必須です。')
+            .optional()
             .isString().withMessage('タイトルは文字列である必要があります。')
             .isLength({ min: 1, max: 50 }).withMessage('タイトルは1文字以上50文字以下でなければなりません。')
             .custom(async (value) => {
-                const existing_title_work = await prisma.work.findFirst({ where: { title: value } });
-                if (existing_title_work) {
+                const existingTitleWork = await prisma.work.findFirst({ where: { title: value } });
+                if (existingTitleWork && existingTitleWork.id !== workId) {
                     return Promise.reject('この漫画のタイトルはすでに存在します。');
                 }
                 return true;
@@ -311,45 +309,77 @@ export const updateWork = async (req: Request, res: Response) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const work = await searchWork(req.session.user_id, workId);
-
-        if (!work) {
-            res.status(400).json({ error_user: "権限がありません。" })
-            return ;
-        }
-
-        if (typeof req.file === "undefined"){
-            res.status(400).json({error_message: "画像ファイルがありません。"})
-            return ;
-        }
-        const fileName: string = req.file.filename;
-        const title: string = req.body.title;
-        const explanation: string = req.body.explanation;
-
-        const filePath: string = "backend/public/images/works/" + fileName;
-
-        // ファイルが存在するかチェックして削除
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-
-        await prisma.work.update({
-            where: { id: workId },
-            data: { 
-                title: title, 
-                explanation: explanation, 
-                work_image: {
-                    update:{
-                        file_name: fileName,
-                    }
-                }
+        const work = await prisma.work.findFirst({
+            where: {
+                id: workId,
+                user_id: req.session.user_id
             }
         });
-        res.status(200).json({ work: updateWork });
 
+        if (!work) {
+            return res.status(400).json({ error_user: "権限がありません。" });
+        }
+
+        const title: string = req.body.title || work.title;
+        const explanation: string = req.body.explanation || work.explanation;
+        let fileName: string | undefined = undefined;
+
+        if (req.file) {
+            fileName = req.file.filename;
+        }
+
+        // Update the work
+        const updatedWork = await prisma.work.update({
+            where: { id: workId },
+            data: {
+                title: title,
+                explanation: explanation,
+                ...(fileName && {
+                    work_image: {
+                        update: {
+                            file_name: fileName,
+                        }
+                    }
+                })
+            }
+        });
+
+        // Update the tags
+        const newTags = req.body.tags || [];
+        if (Array.isArray(newTags)) {
+            // Delete existing tags
+            await prisma.workTag.deleteMany({
+                where: { work_id: workId }
+            });
+
+            // Create new tags
+            for (const tagName of newTags) {
+                const tag = await prisma.tag.upsert({
+                    where: { tag_name: tagName },
+                    update: {},
+                    create: { tag_name: tagName }
+                });
+
+                await prisma.workTag.create({
+                    data: {
+                        work_id: workId,
+                        tag_id: tag.id
+                    }
+                });
+            }
+        }
+
+        // Fetch updated tags
+        const updatedTags = await prisma.workTag.findMany({
+            where: { work_id: workId },
+            select: { tag: true }
+        });
+
+        const tags = updatedTags.map(tag => tag.tag.tag_name);
+
+        res.status(200).json({ work: updatedWork, tags: tags });
     } catch (error) {
         console.error("Error updating work:", error);
-        res.status(500).send('Ineternal Server Error');
+        res.status(500).send('Internal Server Error');
     }
 };
-
