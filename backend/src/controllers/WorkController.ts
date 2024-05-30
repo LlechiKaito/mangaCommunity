@@ -15,6 +15,7 @@ export const getWorks = async (req: Request, res: Response) => {
     try {
         const { title, tag_names } = req.query;
 
+        // anyは使わないで欲しい型を宣言してください。
         const where: any = {};
 
         if (title) {
@@ -51,6 +52,8 @@ export const getWorks = async (req: Request, res: Response) => {
                 },
             },
         });
+
+        // ヒットしない時の処理書いた？
 
         res.json(works);
     } catch (error) {
