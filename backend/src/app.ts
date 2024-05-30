@@ -84,6 +84,8 @@ app.get('/users/:id', getUserProfile);
 app.post('/users/:id', createTag);
 
 // 新しい /tags エンドポイントを追加
+// 一覧表示の表示に関してもcontroller側への記載をお願い致します。
+// わかっていると思うけど、createのルーティング追加してください。
 app.get('/tags', async (req: Request, res: Response) => {
     try {
       const tags = await prisma.tag.findMany();

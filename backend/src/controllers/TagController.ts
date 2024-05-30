@@ -7,7 +7,11 @@ import { stringify } from 'querystring';
 const prisma = new PrismaClient();
 
 export const createTag = async (req: Request, res: Response) => {
+
+    // ここにauthoritiy_idが1では無い場合、エラーを書いて400でフロントに返す。
+
     // バリデーションルール
+    // 型定義しての格納にしてください
     const { tag_name } = req.body;
 
     const existingTag = await prisma.tag.findFirst({
@@ -17,7 +21,8 @@ export const createTag = async (req: Request, res: Response) => {
     if (existingTag) {
         return res.status(400).json({ error: 'そのタグ名はすでに存在しています。' });
     }
-
+    // バリデーションを実行してからの格納にしてください。
+    // uniqueに関しては、バリデーションで指定できます。（workを参考にして！）
     await body('tag_name')
         .notEmpty().withMessage('タグ名は必須です。')
         .isString().withMessage('タグ名は文字列である必要があります。')
@@ -27,7 +32,8 @@ export const createTag = async (req: Request, res: Response) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-  
+
+    // try-catch構文はいらないです。
     try {
       const newTag = await prisma.tag.create({
         data: {

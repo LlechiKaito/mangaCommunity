@@ -143,6 +143,8 @@ export const createWork = async (req: Request, res: Response) => {
             },
         });
 
+        // 作成しなくて大丈夫
+        // タグのバリデーションもしないと変なのが送られてきた時の対処ができない
         if (tags && tags.length > 0) {
             const tagPromises = tags.map(async (tagName) => {
                 let tag = await prisma.tag.findFirst({
@@ -329,6 +331,7 @@ export const updateWork = async (req: Request, res: Response) => {
         }
 
         // Update the work
+        // ここに関しては、僕の方で修正したから大丈夫。
         const updatedWork = await prisma.work.update({
             where: { id: workId },
             data: {
@@ -345,6 +348,7 @@ export const updateWork = async (req: Request, res: Response) => {
         });
 
         // Update the tags
+        // authority=1のユーザーのみのタグの作成になるので、そこの修正をお願いします。
         const newTags = req.body.tags || [];
         if (Array.isArray(newTags)) {
             // Delete existing tags
