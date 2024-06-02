@@ -43,3 +43,6 @@
 <p>ORM：prisma</p>
 <p>データベース：mysql</p>
 <p>web3.js使うのにtruffle</p>
+
+<p>backend/.env　に書いてください。私に連絡すれば何を置けばいいかわかります。</p>
+<p>docker/.env　に書いてください。私に連絡すれば何を置けばいいかわかります。</p>
