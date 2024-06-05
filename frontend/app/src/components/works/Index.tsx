@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import '../../index.css';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "../../index.css";
+import { useNavigate } from "react-router-dom";
+import Header, { getLocalStorage } from ".././shared/Header.tsx";
+import CreateBookmark from ".././bookMarks/create.tsx";
 
 type Work = {
-  id: string;
-  explanation: string;
-  user_id: number;
-  title: string;
-  work_image: {
-    file_name: string;
-  };
+    id: number;
+    explanation: string;
+    user_id: number;
+    title: string;
+    work_image: {
+        file_name:  string;
+    };
 };
 
 type Tag = {

@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
+import Header from '.././shared/Header.tsx';
 
 type Tag = {
   id: number;
   tag_name: string;
 };
 
-const Creatework: React.FC = () => {
+const CreateWork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
-  const [workImage, setWorkImage] = useState<File | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [workImage, setWorkImage] = useState<File | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,8 +23,8 @@ const Creatework: React.FC = () => {
 
   const fetchTags = async () => {
     try {
-      const response = await axios.get('/tags'); // タグの一覧を取得
-      setTags(response.data); // 取得したタグの一覧をstateにセット
+      const response = await axios.get('/tags');
+      setTags(response.data);
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
@@ -35,14 +36,20 @@ const Creatework: React.FC = () => {
       const formData = new FormData();
       formData.append("explanation", explanation);
       formData.append("title", title);
-      formData.append("image", workImage as File);
-      selectedTags.forEach(tag => formData.append("tags[]", tag)); // Correct way to append tags
+      if (workImage) {
+        formData.append("image", workImage);
+      }
 
       const response = await axios.post('/works/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      
+
+      const { id:work_id } = response.data;
+      await axios.post('/works/associate-tags', { work_id, tags: selectedTags });
+
       console.log('Work created:', response.data);
       navigate('/works');
     } catch (error) {
@@ -63,6 +70,7 @@ const Creatework: React.FC = () => {
 
   return (
     <div>
+      <Header />
       <h1>Create Work</h1>
       <form onSubmit={handleSubmit}>
         <div>
@@ -111,4 +119,4 @@ const Creatework: React.FC = () => {
   );
 };
 
-export default Creatework;
+export default CreateWork;

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Navigate, useParams, useNavigate } from 'react-router-dom';
+import CreateBookmark from '.././bookMarks/create.tsx';
+import Header, { getLocalStorage } from '.././shared/Header.tsx';
 
 type Work = {
-  id: string;
+  id: number;
   explanation: string;
   user_id: number;
   title: string;
@@ -26,7 +28,8 @@ type Tag = {
 const ShowWork: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
-  const [work, setWork] = useState<Work | null>(null);
+  //ここから
+  const [work, setWork] = useState<Work>();
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [workImage, setWorkImage] = useState<File | null>(null);
@@ -70,7 +73,8 @@ const ShowWork: React.FC = () => {
     fetchTags();
   }, [id]);
 
-  const handleDelete = async () => {
+  const handleDelete = async (event: React.FormEvent) => {
+    event.preventDefault();
     try {
       await axios.delete(`/works/${id}`);
       navigate('/works');
@@ -88,12 +92,12 @@ const ShowWork: React.FC = () => {
       if (workImage) formData.append("image", workImage as File);
       selectedTags.forEach(tag => formData.append("tags[]", tag));
 
-      const response = await axios.put(`/works/${id}`, formData, {
+      await axios.put(`/works/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Work updated:', response.data);
+      console.log('Work updated:');
       navigate(`/works/${id}`);
     } catch (error) {
       console.error('Error updating work:', error)
@@ -133,6 +137,7 @@ const ShowWork: React.FC = () => {
 
   return (
     <div>
+      <Header />
       {work ? (
         <div>
           <h2>{work.title}</h2>
@@ -149,7 +154,7 @@ const ShowWork: React.FC = () => {
             </div>
           )}
           <button onClick={handleDelete}>Delete Work</button>
-
+          <CreateBookmark id={work.id} />
           <h1>Update Work</h1>
           <form onSubmit={handleUpdate}>
             <div>
@@ -171,6 +176,7 @@ const ShowWork: React.FC = () => {
               />
             </div>
             <div>
+              {/* 編集に失敗してファイルをもう一度変更する際に保持したい */}
               <label htmlFor="workImage">Work Image:</label>
               <input
                 type="file"
@@ -194,9 +200,11 @@ const ShowWork: React.FC = () => {
 
             <button type="submit">Update Work</button>
           </form>
-          <button onClick={isBookmarked ? undoBookMark : doBookMark}>
-            {isBookmarked ? "ブックマーク解除" : "ブックマークする"}
-          </button>
+          {isBookmarked ? (
+            <button onClick={undoBookMark}>Undo Bookmark</button>
+          ) : (
+            <button onClick={doBookMark}>Do Bookmark</button>
+          )}
         </div>
       ) : (
         <p>Loading...</p>
