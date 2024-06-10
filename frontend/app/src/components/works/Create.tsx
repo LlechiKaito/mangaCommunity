@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
-import Header, { getLocalStorage } from '.././shared/Header.tsx';
+import Header, { getLocalStorage } from '../shared/Header.tsx';
 
 const CreateWork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
@@ -26,7 +26,12 @@ const CreateWork: React.FC = () => {
       console.log('Work created:', response.data);
       navigate('/works');
     } catch(error) {
-      console.error('Error creating work:', error);
+      if (error.response && error.response.status === 403) {
+        // セッションが無効な場合、localStorageをclearする
+        localStorage.clear();
+      } else {
+        console.error('Error fetching data:', error);
+      }
     }
   };
 

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
-import CreateBookmark from '.././bookMarks/create.tsx';
-import Header, { getLocalStorage } from '.././shared/Header.tsx';
+import CreateBookmark from '../bookMarks/create.tsx';
+import Header, { getLocalStorage } from '../shared/Header.tsx';
 
 type Work = {
   id: number;
@@ -12,6 +12,9 @@ type Work = {
   title: string;
   work_image: {
     file_name: string;
+  };
+  book_mark: {
+    user_id: number;
   };
 };
 
@@ -67,7 +70,12 @@ const ShowWork: React.FC = () => {
       });
       navigate('/works');
     } catch (error) {
-      console.error('Error updating work:', error)
+      if (error.response && error.response.status === 403) {
+        // セッションが無効な場合、localStorageをclearする
+        localStorage.clear();
+      } else {
+        console.error('Error fetching data:', error);
+      }
     }
   };
 
@@ -86,7 +94,7 @@ const ShowWork: React.FC = () => {
           <p>{work.explanation}</p>
           <img src={`http://localhost:8080/public/images/works/${work.work_image.file_name}`} alt="noImage.jpeg" />
           <button onClick={handleDelete}>Delete Work</button>
-          <CreateBookmark id={work.id} />
+          <CreateBookmark id={work.id} isBookMark={true} />
           <h1>Update Work</h1>
           <form onSubmit={handleUpdate}>
             <div>

@@ -5,6 +5,7 @@ import { body, validationResult } from 'express-validator';
 import { stringify } from 'querystring';
 import fs from 'fs';
 import { title } from 'process';
+import { checkBookMarks } from './BookMarkController';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -42,8 +43,18 @@ export const getWorks = async (req: Request, res: Response) => {
             }
         });
 
+        // ログインしているユーザーに紐づくブックマークを全て取得する
+        const bookMarks = await prisma.book_mark.findMany({
+            where: {
+                user_id: req.session.user_id
+            }
+        });
+
+        // 取得した作品に対してブックマークがされているかをboolean型で格納
+        const hasBookMarks = checkBookMarks(works, req.session.user_id, bookMarks);
+
         // 結果をレスポンスとして返す
-        res.json(works);
+        res.status(200).json({works, hasBookMarks});
     } catch (error) {
         console.error("Error fetching works:", error);
         res.status(500).send('Internal Server Error');

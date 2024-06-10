@@ -38,7 +38,12 @@ const Login: React.FC = () => {
         navigate(redirectUrl);
       });
     } catch (error) {
-      console.error(error);
+      if (error.response && error.response.status === 403) {
+        // セッションが無効な場合、localStorageをclearする
+        localStorage.clear();
+      } else {
+        console.error('Error fetching data:', error);
+      }
     }
   }
   
