@@ -10,9 +10,34 @@ const prisma = new PrismaClient({
 
 export const getBookMarks = async (req: Request, res: Response) => {
     try {
+        if (!req.session.user_id) {
+            res.status(403).json({ error: "ログインしてください" });
+            return
+        }
+
+        const userId: number = req.session.user_id;
+        const bookMarks = await prisma.book_mark.findMany({
+            where: {
+                user_id: userId
+            },
+            include: {
+                work: {
+                    include:{
+                        work_image: true
+                    }
+                }
+            }
+        });
+
+        if (!bookMarks) {
+            res.status(404).json({error: "ブックマークした漫画は存在しません。"});
+        }
+        
+        const worksWithBookMarks = bookMarks.flatMap(book_mark => book_mark.work)
+
+        res.status(200).json({works: worksWithBookMarks});
         
     } catch (error) {
-        
         console.error("Error fetching works", error);
         res.status(500).send('Internal Server Error');
     }
@@ -74,5 +99,39 @@ export const undoBookMark = async (req: Request, res: Response) => {
         console.error("Error fetching works", error);
         res.status(500).send('Internal Server Error');
     }
-    
 };
+
+interface works {
+    id: number;
+}
+
+interface bookMarks {
+    work_id: number;
+}
+
+export const checkBookMarks = (works: works[], myUserId: number | undefined, bookMarks: bookMarks[]) => {
+    let hasBookMarks: boolean[] = [];
+
+    if (!myUserId){
+        works.forEach(work => {
+            hasBookMarks.push(false);
+        });
+    } else {
+        let flag: boolean = true;
+        works.forEach(work => {
+            for (const bookMark of bookMarks) {
+                if (bookMark.work_id === work.id) {
+                    hasBookMarks.push(true);
+                    flag = false;
+                    break;
+                }  
+            }
+            if (flag){
+                hasBookMarks.push(false);
+            } else {
+                flag = true;
+            }
+        });
+    }
+    return hasBookMarks;
+}

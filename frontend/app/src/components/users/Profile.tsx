@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Top from '../Top.tsx';
 import Header, { getLocalStorage } from '.././shared/Header.tsx';
 import { useParams } from 'react-router-dom';
+import AllBookMark from '.././bookMarks/index.tsx';
 
 type User = {
   name: string;
@@ -42,8 +43,12 @@ const Profile: React.FC = () => {
       setMessage('タグが作成されました: ${response.data.tag_name}');
       setTagName('');
     } catch (error) {
-      console.error('Error creating tag:', error);
-      setMessage('タグの作成に失敗しました');
+      if (error.response && error.response.status === 403) {
+        // セッションが無効な場合、localStorageをclearする
+        localStorage.clear();
+      } else {
+        console.error('Error fetching data:', error);
+      }
     }
   };
 
@@ -73,6 +78,7 @@ const Profile: React.FC = () => {
           {message && <p>{message}</p>}
         </div>
       )}
+      <AllBookMark />
     </div>
   );
 }

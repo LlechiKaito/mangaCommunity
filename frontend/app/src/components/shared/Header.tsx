@@ -54,7 +54,12 @@ const Header: React.FC = () => {
       localStorage.clear();
       navigate(afterUrl);
     } catch (error) {
-      console.error(error);
+      if (error.response && error.response.status === 403) {
+        // セッションが無効な場合、localStorageをclearする
+        localStorage.clear();
+      } else {
+        console.error('Error fetching data:', error);
+      }
     }
     
   }

@@ -5,9 +5,9 @@ import axios from 'axios';
 
 // paramsからの取得の変更
 
-const CreateBookmark: React.FC<{ id: number }> = ({ id }) => {
-    const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+const CreateBookmark: React.FC<{ id: number, isBookMark: boolean }> = ({ id, isBookMark }) => {
     const [workId, setWorkId] = useState<number>(id);
+    const [isBookMarked, setIsBookMarked] = useState<boolean>(isBookMark);
     const navigate = useNavigate();
 
     if (!workId) {
@@ -15,15 +15,23 @@ const CreateBookmark: React.FC<{ id: number }> = ({ id }) => {
         return ;
     }
 
+    console.log(isBookMarked);
+
     const doBookMark = async (event: React.FormEvent) => {
         event.preventDefault();
         const afterUrl: string = window.location.pathname;
         try {
-            setIsBookmarked(true);
             await axios.post(`/book_marks/${workId}`);
+            setIsBookMarked(true)
+            // isBookMark = true;
             navigate(afterUrl);
         } catch (error) {
-            console.error('Error doing Bookmark:', error)
+            if (error.response && error.response.status === 403) {
+                // セッションが無効な場合、localStorageをclearする
+                localStorage.clear();
+            } else {
+                console.error('Error fetching data:', error);
+            }
         }
     };
     
@@ -31,18 +39,33 @@ const CreateBookmark: React.FC<{ id: number }> = ({ id }) => {
         event.preventDefault();
         const afterUrl: string = window.location.pathname;
         try {
-            setIsBookmarked(false);
             await axios.delete(`/book_marks/${workId}`);
+            setIsBookMarked(false);
+            // isBookMark = false;
             navigate(afterUrl);
         } catch (error) {
             console.error('Error undoing Bookmark', error)
         }
     };
 
+    const BookMarkComponent = () => {
+        if (isBookMarked){
+          return (
+            <button onClick={undoBookMark}>
+                {"ブックマーク解除"}
+            </button>
+          );
+        } else {
+            return (
+                <button onClick={doBookMark}>
+                    {"ブックマークする"}
+                </button>
+            );
+        }
+      }
+
     return (
-        <button onClick={isBookmarked ? undoBookMark : doBookMark}>
-            {isBookmarked ? "ブックマーク解除" : "ブックマークする"}
-        </button>
+        <BookMarkComponent />
     );
 }
 

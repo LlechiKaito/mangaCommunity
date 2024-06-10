@@ -3,7 +3,7 @@ import { Express, Request, Response } from 'express'; // Import types
 import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
 import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
 import { workImageUpload } from './controllers/ImageController';
-import { doBookMark, undoBookMark } from './controllers/BookMarkController';
+import { doBookMark, undoBookMark, getBookMarks } from './controllers/BookMarkController';
 import { createTag, getTags } from './controllers/TagController';
 import cors from "cors";
 import { CorsOptions } from "cors";
@@ -66,7 +66,7 @@ app.use(session({
         secure: false, // HTTPSを使用する
         httpOnly: true, // XSS攻撃を防ぐ
         sameSite: 'strict', // CSRF攻撃を防ぐ
-        maxAge: 2 * 60 * 60 * 1000 // セッションの有効期限を設定（例: 2時間）
+        maxAge: 7200000 // セッションの有効期限を設定（例: 2時間）
     }
 }));
 
@@ -87,6 +87,7 @@ app.delete('/works/:id', deleteWork);
 app.put('/works/:id', workImageUpload.single('image'), updateWork);
 
 //bookmarkのルーティング
+app.get('/book_marks', getBookMarks);
 app.post('/book_marks/:id', doBookMark);
 app.delete('/book_marks/:id', undoBookMark);
 

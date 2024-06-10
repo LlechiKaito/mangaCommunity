@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../../index.css";
 import { useNavigate } from "react-router-dom";
-import Header, { getLocalStorage } from ".././shared/Header.tsx";
-import CreateBookmark from ".././bookMarks/create.tsx";
+import Header, { getLocalStorage } from "../shared/Header.tsx";
+import CreateBookmark from "../bookMarks/create.tsx";
 
 type Work = {
     id: number;
@@ -17,6 +17,7 @@ type Work = {
 
 const AllWork: React.FC = () => {
     const [works, setWorks] = useState<Work[]>([]);
+    const [hasBookMarks, setHasBookMarks] = useState<boolean[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -26,9 +27,15 @@ const AllWork: React.FC = () => {
     const fetchWorks = async () => {
         try {
             const response = await axios.get("/works");
-            setWorks(response.data);
+            setHasBookMarks(response.data.hasBookMarks);
+            setWorks(response.data.works);
         } catch (error) {
-            console.error(error);
+            if (error.response && error.response.status === 403) {
+                // セッションが無効な場合、localStorageをclearする
+                localStorage.clear();
+            } else {
+                console.error('Error fetching data:', error);
+            }
         }
     };
 
@@ -40,7 +47,7 @@ const AllWork: React.FC = () => {
             <ul>
                 {works.map((work, index) => (
                     <li key={index}>
-                        <CreateBookmark id={work.id} />
+                        <CreateBookmark id={work.id} isBookMark={hasBookMarks[index]} />
                         <h3>{work.title}</h3>
                         <p>{work.explanation}</p>
                         <p>{work.work_image.file_name}</p>
