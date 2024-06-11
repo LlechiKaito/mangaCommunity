@@ -1,8 +1,9 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { Express, Request, Response } from 'express'; // Import types
-import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
-import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
+import { createUser, forgetLoginId, forgetPassword, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
+import { getUsersBySearch, getWorksBySearch } from './controllers/SearchController';
+import { createWork, showWork, deleteWork, updateWork } from './controllers/WorkController';
 import { workImageUpload } from './controllers/ImageController';
 import { doBookMark, undoBookMark } from './controllers/BookMarkController';
 import { createTag, getTags, associateTagsWithWork } from './controllers/TagController';
@@ -77,7 +78,7 @@ app.use(session({
 app.use('/api/images', express.static('/backend/public/images'));
 
 // user関係のルーティング
-app.get('/users', getUsers);
+//app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
@@ -88,12 +89,15 @@ app.get('/users/:id', getUserProfile);
 
 
 //work関係のルーティング
-app.get('/works', getWorks);
+app.get('/works/result', getWorksBySearch);
 app.post('/works/create', workImageUpload.single('image'), createWork);
 app.get('/works/create', getTags);
 app.get('/works/:id', showWork);
 app.delete('/works/:id', deleteWork);
 app.put('/works/:id', workImageUpload.single('image'), updateWork);
+
+//検索関係のルーティング
+app.get('/users/result', getUsersBySearch);
 
 //bookmarkのルーティング
 app.post('/book_marks/:id', doBookMark);

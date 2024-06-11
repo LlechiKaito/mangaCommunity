@@ -12,20 +12,6 @@ const prisma = new PrismaClient({
     log: ['query', 'info', 'warn', 'error']
 });
 
-// 全表示
-export const getUsers = async (req: Request, res: Response) => {
-    try {
-        const users = await prisma.user.findMany({
-            include: {
-                authority: true,
-            },
-        });
-        res.json(users);
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        res.status(500).send('Internal Server Error');
-    }
-};
 
 // ユーザー作成機能(メール認証は行なっていない。)
 export const createUser = async (req: Request, res: Response) => {

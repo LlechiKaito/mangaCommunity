@@ -14,59 +14,6 @@ const prisma = new PrismaClient({
     log: ['query', 'info', 'warn', 'error']
 });
 
-//workの全表示//
-export const getWorks = async (req: Request, res: Response) => {
-    try {
-        const { title, tag_names } = req.query;
-
-        // anyは使わないで欲しい型を宣言してください。
-        const where: any = {};
-
-        if (title) {
-            const titleCondition = await searchByTitle(title as string);
-            where.title = titleCondition.title;
-        }
-
-        if (tag_names) {
-            const tagsConditions = await searchByTags(tag_names as string | string[]);
-            if (Object.keys(tagsConditions).length > 0) {
-                where.AND = tagsConditions.AND;
-            }
-        }
-
-        const works = await prisma.work.findMany({
-            where,
-            select: {
-                id: true,
-                title: true,
-                explanation: true,
-                work_image: {
-                    select: {
-                        file_name: true,
-                    },
-                },
-                work_tags: {
-                    select: {
-                        tag: {
-                            select: {
-                                tag_name: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
-
-        // ヒットしない時の処理書いた？
-
-        res.json(works);
-    } catch (error) {
-        console.error("Error fetching works:", error);
-        res.status(500).send('Internal Server Error');
-    }
-};
-
-
 
 
 const storage = multer.diskStorage({
