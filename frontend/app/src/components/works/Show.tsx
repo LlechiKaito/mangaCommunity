@@ -104,25 +104,6 @@ const ShowWork: React.FC = () => {
     }
   };
 
-  const doBookMark = async () => {
-    try {
-      setIsBookmarked(true);
-      await axios.post(`/works/${id}`);
-      navigate(`/works/${id}`);
-    } catch (error) {
-      console.error('Error doing Bookmark:', error)
-    }
-  };
-
-  const undoBookMark = async () => {
-    try {
-      setIsBookmarked(false);
-      await axios.delete(`/works/${id}?action=undoBookmark`);
-      navigate(`/works/${id}`);
-    } catch (error) {
-      console.error('Error undoing Bookmark:', error)
-    }
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -200,11 +181,6 @@ const ShowWork: React.FC = () => {
 
             <button type="submit">Update Work</button>
           </form>
-          {isBookmarked ? (
-            <button onClick={undoBookMark}>Undo Bookmark</button>
-          ) : (
-            <button onClick={doBookMark}>Do Bookmark</button>
-          )}
         </div>
       ) : (
         <p>Loading...</p>

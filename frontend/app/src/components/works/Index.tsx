@@ -35,7 +35,7 @@ const AllWork: React.FC = () => {
 
   const fetchWorks = async (searchParams = {}) => {
     try {
-      const response = await axios.get("/works", { params: searchParams });
+      const response = await axios.get("/works/result", { params: searchParams });
       setWorks(response.data);
     } catch (error) {
       console.error(error);
