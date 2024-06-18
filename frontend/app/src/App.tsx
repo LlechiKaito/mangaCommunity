@@ -4,14 +4,14 @@ import Login from './components/users/Login.tsx';
 import Register from './components/users/Register.tsx';
 import Profile from './components/users/Profile.tsx';
 import Top from './components/Top.tsx';
-import AllWork from './components/works/index.tsx';
-import CreateWork from './components/works/create.tsx';
-import ShowWork from './components/works/show.tsx';
+import AllWork from './components/works/Index.tsx';
+import CreateWork from './components/works/Create.tsx';
+import ShowWork from './components/works/Show.tsx';
 import ForgetLoginId from './components/users/ForgetLoginId.tsx';
 import ForgetPassword from './components/users/ForgetPassword.tsx';
 import AfterSendEmail from './components/users/AfterSendMail.tsx';
 import ResetPassword from './components/users/ResetPassword.tsx';
-import AllBookMark from './components/bookMarks/index.tsx';
+import AllBookMark from './components/bookMarks/Index.tsx';
 
 export const App: React.FC = () => {
   return (
