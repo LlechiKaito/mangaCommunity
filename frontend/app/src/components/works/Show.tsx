@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { Navigate, useParams, useNavigate } from 'react-router-dom';
-import CreateBookmark from '../bookMarks/Create.tsx';
+import CreateBookmark from '../bookMarks/create.tsx';
 import Header, { getLocalStorage } from '../shared/Header.tsx';
 
 type Work = {
