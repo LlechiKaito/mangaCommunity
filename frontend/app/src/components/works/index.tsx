@@ -3,7 +3,7 @@ import axios from "axios";
 import "../../index.css";
 import { useNavigate } from "react-router-dom";
 import Header, { getLocalStorage } from "../shared/Header.tsx";
-import CreateBookmark from "../bookMarks/Create.tsx";
+import CreateBookmark from "../bookMarks/create.tsx";
 
 type Work = {
     id: number;
