@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Top from '../Top.tsx';
 import Header, { getLocalStorage } from '.././shared/Header.tsx';
 import { useParams } from 'react-router-dom';
-import AllBookMark from '.././bookMarks/index.tsx';
+import AllBookMark from '../bookMarks/Index.tsx';
 
 type User = {
   name: string;

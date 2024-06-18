@@ -93,6 +93,7 @@ const Header: React.FC = () => {
     <div className="App">
       <a href="/">トップページへ</a>
       <AuthenticationComponent />
+      <a href="/works/result">検索画面へ</a>
     </div>
   );
 }
