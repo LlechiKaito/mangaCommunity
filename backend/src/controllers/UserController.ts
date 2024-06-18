@@ -119,7 +119,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
-        console.log("dsa")
+
         if(req.session.user_id){
             res.status(403).json({ error: "既にログインしています。" });
             return;
