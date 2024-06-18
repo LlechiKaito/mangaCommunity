@@ -6,6 +6,7 @@ import { stringify } from 'querystring';
 import fs from 'fs';
 import { title } from 'process';
 import { checkBookMarks } from './BookMarkController';
+import { associateTagsWithWorkForCreate, associateTagsWithWorkForUpdate } from './TagController';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -15,51 +16,36 @@ const prisma = new PrismaClient({
 //workの全表示//
 export const getWorks = async (req: Request, res: Response) => {
     try {
-        // クエリパラメータから検索条件を取得
-        const { title } = req.query;
-
-        // whereオブジェクトを初期化
-        const where: any = {};
-
-        // titleが指定されている場合のフィルタリング
-        if (title) {
-            where.title = {
-                contains: title as string
-            };
-        }
-
         // データベースからデータを取得
-        const works = await prisma.work.findMany({
-            where,
-            select: {
-                id: true,
-                title: true,
-                explanation: true,
-                work_image: {
-                    select: {
-                        file_name: true
-                    }
+        const works = await prisma.work.findMany();
+
+        if (req.session.user_id){
+            const userId: number = req.session.user_id;
+
+            // ログインしているユーザーに紐づくブックマークを全て取得する
+            const bookMarks = await prisma.book_mark.findMany({
+                where: {
+                    user_id: userId
                 }
-            }
-        });
+            });
 
-        // ログインしているユーザーに紐づくブックマークを全て取得する
-        const bookMarks = await prisma.book_mark.findMany({
-            where: {
-                user_id: req.session.user_id
-            }
-        });
-
-        // 取得した作品に対してブックマークがされているかをboolean型で格納
-        const hasBookMarks = checkBookMarks(works, req.session.user_id, bookMarks);
-
-        // 結果をレスポンスとして返す
-        res.status(200).json({works, hasBookMarks});
+            // 取得した作品に対してブックマークがされているかをboolean型で格納
+            const hasBookMarks = checkBookMarks(works, req.session.user_id, bookMarks);
+            // 結果をレスポンスとして返す
+            res.status(200).json({works, hasBookMarks});
+        }
+        
+        res.status(200).json({works});
     } catch (error) {
         console.error("Error fetching works:", error);
         res.status(500).send('Internal Server Error');
     }
 };
+
+interface Tag {
+    id: number;
+    tag_name: string;
+}
 
 // workのrecord保存に関する関数
 export const createWork = async (req: Request, res: Response) => {
@@ -97,8 +83,8 @@ export const createWork = async (req: Request, res: Response) => {
         // typescriptなので、型宣言して代入をしている。
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
-        const user_id: number = req.session.user_id;
-        const tag: string = req.body.tag;
+        const userId: number = req.session.user_id;
+        const tags: Tag[] = req.body.tags;
 
         // 画像ファイルがない場合、エラーを返す
         if (typeof req.file === "undefined"){
@@ -112,7 +98,7 @@ export const createWork = async (req: Request, res: Response) => {
         const work = await prisma.work.create({
             data: {
                 explanation: explanation,
-                user_id: user_id,
+                user_id: userId,
                 title: title,
                 work_image: {
                     create: { file_name:  fileName}
@@ -120,21 +106,8 @@ export const createWork = async (req: Request, res: Response) => {
             },
         });
 
-        // タグについての処理.これは、TagControllerに移したい
-        if (tag) {
-            const existingTag = await prisma.tag.findFirst({
-                where: { tag_name: tag },
-            });
-
-            if (existingTag) {
-                await prisma.workTag.create({
-                    data: {
-                        work_id: work.id,
-                        tag_id: existingTag.id,
-                    },
-                });
-            }
-        }
+        const workId: number = work.id;
+        associateTagsWithWorkForCreate(workId, tags);
 
         // フロント側にworkを送る
         res.status(201).json(work);
@@ -313,6 +286,7 @@ export const updateWork = async (req: Request, res: Response) => {
         const fileName: string = req.file.filename;
         const title: string = req.body.title;
         const explanation: string = req.body.explanation;
+        const tags: Tag[] = req.body.tags;
 
         // ファイルの格納場所の格納
         const filePath: string = "public/images/works/" + title + "/" + fileName;
@@ -334,7 +308,10 @@ export const updateWork = async (req: Request, res: Response) => {
                     }
                 }
             }
-        });
+        })
+
+        associateTagsWithWorkForUpdate(workId, tags);
+
         // フロント側にworkを送る
         res.status(200).json({ work: updateWork });
 

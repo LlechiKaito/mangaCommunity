@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../.././index.css';
 import axios from 'axios';
-import CreateBookmark from './create.tsx';
+import CreateBookmark from './Create.tsx';
 
 type Work = {
     id: number;

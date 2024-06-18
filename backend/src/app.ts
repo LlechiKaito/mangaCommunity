@@ -13,6 +13,7 @@ import session from 'express-session';
 import Redis from 'ioredis';
 // import connectRedis from 'connect-redis';
 import RedisStore from 'connect-redis';
+import { getUsersBySearch, getWorksBySearch } from 'controllers/SearchController';
 
 const app: Express = express();
 // app.set("trust proxy", true);
@@ -74,12 +75,18 @@ app.use(session({
 app.use('/api/images', express.static('/backend/public/images'));
 
 // user関係のルーティング
-app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
+app.post('/users/forget/login_id', forgetLoginId);
+app.post('/users/forget/password', forgetPassword);
+app.put('/users/reset-password', resetPassword);
+app.get('/users/:id', getUserProfile);
+app.get('/users/result', getUsersBySearch);
+
 //work関係のルーティング
 app.get('/works', getWorks);
+app.get('/works/result', getWorksBySearch);
 app.post('/works/create', workImageUpload.single('image'), createWork);
 app.get('/works/create', getTags);
 app.get('/works/:id', showWork);
@@ -91,12 +98,12 @@ app.get('/book_marks', getBookMarks);
 app.post('/book_marks/:id', doBookMark);
 app.delete('/book_marks/:id', undoBookMark);
 
-app.post('/users/forget/login_id', forgetLoginId);
-app.post('/users/forget/password', forgetPassword);
-app.put('/users/reset-password', resetPassword);
-app.get('/users/:id', getUserProfile);
-//Tagのルーティング
-app.post('/users/:id', createTag);
+//Tagのルーティング(保留)
+app.post('/tags/:id', createTag);
+
+// 新しい /tags エンドポイントを追加(保留)
+app.get('/tags', getTags);
+// app.post('/works/associate-tags', associateTagsWithWork);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
