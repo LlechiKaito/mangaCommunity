@@ -14,7 +14,7 @@ const CreateBookmark: React.FC<{ id: number, isBookMark: boolean }> = ({ id, isB
         console.error("workIdが空です。");
         return ;
     }
-
+// ass
     console.log(isBookMarked);
 
     const doBookMark = async (event: React.FormEvent) => {
