@@ -12,6 +12,8 @@ import ForgetPassword from './components/users/ForgetPassword.tsx';
 import AfterSendEmail from './components/users/AfterSendMail.tsx';
 import ResetPassword from './components/users/ResetPassword.tsx';
 import AllBookMark from './components/bookMarks/index.tsx';
+import AllTag from './components/tags/index.tsx';
+import CreateTag from './components/tags/create.tsx';
 
 export const App: React.FC = () => {
   return (
@@ -29,6 +31,8 @@ export const App: React.FC = () => {
         <Route path='/works/:id' element={<ShowWork />} />
         <Route path="/users/:id" element={<Profile />} />
         <Route path="/book_marks" element={<AllBookMark />} />
+        <Route path="/tags" element={<AllTag />} />
+        <Route path="/tags/create" element={<CreateTag />} />
       </Routes>
     </BrowserRouter>
   );
