@@ -9,6 +9,7 @@
 <h3>dockerのbackend側(node.js(express.js))の起動</h3>
 <p>docker exec -u node -it back /bin/bash</p>
 <p>backendの起動の仕方</p>
+<p>npm install</p>
 <p>npm run dev</p>
 <p>port：8080</p>
 <p>migrate(テーブル作成)とseeder(データ補充)を更新してください</p>
@@ -21,6 +22,7 @@
 <h3>dockerのfrontend側(React)の起動</h3>
 <p>docker exec -u node -it front /bin/bash</p>
 <p>cd app</p>
+<p>npm install</p>
 <p>npm start</p>
 <p>port：3000</p>
 <p>基本的にhttp://localhost:3000/これでリクエストを送る</p>
