@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../.././index.css';
 import axios from 'axios';
 import CreateBookmark from './create.tsx';
+import { getLocalStorage } from '../shared/Header.tsx';
 
 type Work = {
     id: number;
@@ -17,8 +18,17 @@ const AllBookMark: React.FC = () => {
     const [works, setWorks] = useState<Work[]>([]);
 
     const fetchWorksWithBookMarks = async () => {
+        // リクエストヘッダーの設定
+        const headers = {
+            'authorization': `Bearer ${getLocalStorage('token')}`,
+            'Content-Type': 'application/json',
+            // 他に必要なヘッダーがあれば追加する
+        };
+
         try {
-            const response = await axios.get("/book_marks");
+            const response = await axios.get("/book_marks", {
+                headers
+            });
             setWorks(response.data.works);
         } catch (error) {
             if (error.response && error.response.status === 403) {

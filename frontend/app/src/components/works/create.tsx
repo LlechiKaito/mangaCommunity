@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../../index.css';
 import { useNavigate } from 'react-router-dom';
 import Header, { getLocalStorage } from '../shared/Header.tsx';
+import TagSelects from '../tags/select.tsx';
+
+type Tag = {
+  id: number;
+  tag_name: string;
+};
 
 const CreateWork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
-  const [workImage,setWorkImage] = useState<File>();
+  const [workImage, setWorkImage] = useState<File>();
+  const [tagNames, setTagNames] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -18,10 +25,16 @@ const CreateWork: React.FC = () => {
       formData.append("title", title);
       formData.append("image", workImage as File);
 
+      // リクエストヘッダーの設定
+      const headers = {
+        'authorization': `Bearer ${getLocalStorage('token')}`,
+        'Content-Type': 'multipart/form-data'
+        // 他に必要なヘッダーがあれば追加する
+      };
+
+      // エラー出たらヘッダー関係だと思う
       const response = await axios.post('./create', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers
       });
       console.log('Work created:', response.data);
       navigate('/works');
@@ -71,6 +84,9 @@ const CreateWork: React.FC = () => {
             id="workImage"
             onChange={handleFileChange}
           />
+        </div>
+        <div>
+          <TagSelects />
         </div>
         <button type="submit">Create Work</button>
       </form>

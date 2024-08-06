@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../.././index.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getLocalStorage } from '../shared/Header.tsx';
 
 // paramsからの取得の変更
 
@@ -20,8 +21,19 @@ const CreateBookmark: React.FC<{ id: number, isBookMark: boolean }> = ({ id, isB
     const doBookMark = async (event: React.FormEvent) => {
         event.preventDefault();
         const afterUrl: string = window.location.pathname;
+        // リクエストヘッダーの設定
+        const headers = {
+            'authorization': `Bearer ${getLocalStorage('token')}`,
+            'Content-Type': 'application/json',
+            // 他に必要なヘッダーがあれば追加する
+        };
+
+        const data = {};
+
         try {
-            await axios.post(`/book_marks/${workId}`);
+            await axios.post(`/book_marks/${workId}`, data, {
+                headers
+            });
             setIsBookMarked(true)
             // isBookMark = true;
             navigate(afterUrl);
@@ -38,10 +50,19 @@ const CreateBookmark: React.FC<{ id: number, isBookMark: boolean }> = ({ id, isB
     const undoBookMark = async (event: React.FormEvent) => {
         event.preventDefault();
         const afterUrl: string = window.location.pathname;
+
+        // リクエストヘッダーの設定
+        const headers = {
+            'authorization': `Bearer ${getLocalStorage('token')}`,
+            'Content-Type': 'application/json',
+            // 他に必要なヘッダーがあれば追加する
+        };
+
+        const data = {};
+
         try {
-            await axios.delete(`/book_marks/${workId}`);
+            await axios.delete(`/book_marks/${workId}`, {headers});
             setIsBookMarked(false);
-            // isBookMark = false;
             navigate(afterUrl);
         } catch (error) {
             console.error('Error undoing Bookmark', error)

@@ -17,7 +17,7 @@ const ForgetLoginId: React.FC = () => {
 
         try {
           await axios.post(url, {
-            email_address: emailAddress,
+            email_address: emailAddress
           });
           navigate(redirectUrl);
         } catch (error) {

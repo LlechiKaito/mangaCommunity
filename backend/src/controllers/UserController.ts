@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt, { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import nodemailer from 'nodemailer';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
 
@@ -11,6 +11,24 @@ dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
 const prisma = new PrismaClient({
     log: ['query', 'info', 'warn', 'error']
 });
+
+// const secretKey = randomBytes(32).toString('hex');
+// セキュリティ的に変更する必要がある。
+const secretKey = "manga";
+
+// 本当はこれでprismaのものを代入しないといけん
+interface User {
+    id: number;
+    createdAt: Date;
+    updatedAt: Date;
+    login_id: string;
+    email_address: string;
+    password: string;
+    name: string;
+    authority_id: number;
+    password_reset_token: string | null;
+    password_reset_expires: Date | null;
+}
 
 // 全表示
 export const getUsers = async (req: Request, res: Response) => {
@@ -27,14 +45,28 @@ export const getUsers = async (req: Request, res: Response) => {
     }
 };
 
+// 全てのfalseをログインできていないことにしています。脆弱性
+export const isLoggedIn = async(req: Request, res: Response) => {
+
+    if (!req.headers['authorization'] || Array.isArray(req.headers['authorization'])){
+        return false; 
+    }
+
+    const authHeader: string = req.headers['authorization'];
+
+    const token: string = authHeader.split(' ')[1];
+
+    try {
+        const decodedToken = jwt.verify(token, secretKey) as { user_id: number; name: string; authority_id: number };
+        return decodedToken;
+    }catch{
+        return false;
+    }
+}
+
 // ユーザー作成機能(メール認証は行なっていない。)
 export const createUser = async (req: Request, res: Response) => {
     try {
-        if(req.session.user_id){
-            res.status(403).json({ error: "既にログインしています。" });
-            return;
-        }
-
         // バリデーションのルールを定義
         await body('login_id')
             .notEmpty().withMessage('ログインIDは必須です。')
@@ -119,12 +151,6 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
-
-        if(req.session.user_id){
-            res.status(403).json({ error: "既にログインしています。" });
-            return;
-        }
-
         const login_id: string = req.body.login_id;
         const password: string = req.body.password;
 
@@ -141,10 +167,12 @@ export const loginUser = async (req: Request, res: Response) => {
 
         const passwordIsValid = await bcrypt.compareSync(password, user.password)
         if (passwordIsValid){
-            req.session.user_id = user.id;
-            req.session.name = user.name;
-            req.session.authority_id = user.authority_id;
-            res.status(200).json(user);
+            const token = await jwt.sign(
+                { user_id: user.id as number, name: user.name as string, authority_id: user.authority_id as number },
+                secretKey,
+                { expiresIn: '2h' }
+            );
+            res.status(200).json({user, token});
         } else {
             res.status(400).json({ error_password: "このユーザーIDのパスワードが間違えています。", user: user });
         }
@@ -156,13 +184,15 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const logoutUser = async (req: Request, res: Response) => {
     try {
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしていません。" });
-            return;
+        console.log(req.headers['authorization'])
+        if (!req.headers['authorization'] || Array.isArray(req.headers['authorization'])){
+            res.status(401).json({message: "トークンがありません。"})
+            return; 
         }
-        req.session.destroy((error) => {
-            res.status(200).json({ message: "正常にログアウトしました。" });
-        });
+        
+        // ブラックリスト方式やリフレッシュトークンなどを導入してセキュリティを強固にする必要があるが、今は何もしない
+
+        res.status(200).json({ message: "正常にログアウトしました。" });
     } catch (error) {
         console.error("Error fetching users:", error);
         res.status(500).send('Internal Server Error');
@@ -171,11 +201,6 @@ export const logoutUser = async (req: Request, res: Response) => {
 
 export const forgetLoginId = async (req: Request, res: Response) => {
     try {
-        if (req.session.user_id) {
-            res.status(403).json({ error: "既にログインしています。" });
-            return;
-        }
-
         // 以下のメールアドレスは、変える必要あり
         const from: string = "llechi0420@gmail.com";
         const to: string = req.body.email_address;
@@ -241,11 +266,6 @@ export const forgetLoginId = async (req: Request, res: Response) => {
 
 export const forgetPassword = async (req: Request, res: Response) => {
     try {
-        if (req.session.user_id) {
-            res.status(403).json({ error: "既にログインしています。" });
-            return;
-        }
-
         // 以下のメールアドレスは、変える必要あり
         const from: string = "llechi0420@gmail.com";
         const to: string = req.body.email_address;
@@ -333,11 +353,6 @@ interface DecodedToken {
 
 export const resetPassword = async (req: Request, res: Response) => {
     try {
-        if (req.session.user_id) {
-            res.status(403).json({ error: "既にログインしています。" });
-            return;
-        }
-
         await body('password')
             .notEmpty().withMessage('パスワードは必須です。')
             .isString().withMessage('パスワードは文字列である必要があります。')

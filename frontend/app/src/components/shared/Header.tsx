@@ -49,14 +49,25 @@ const Header: React.FC = () => {
     let url: string = "/users/logout";
     const afterUrl: string = window.location.pathname;
 
+    // リクエストヘッダーの設定
+    const headers = {
+      'authorization': `Bearer ${getLocalStorage('token')}`,
+      'Content-Type': 'application/json',
+      // 他に必要なヘッダーがあれば追加する
+    };
+
+    const data = {};
+
     try {
-      await axios.post(url);
+      await axios.post(url, data, {headers});
       localStorage.clear();
       navigate(afterUrl);
     } catch (error) {
       if (error.response && error.response.status === 403) {
         // セッションが無効な場合、localStorageをclearする
         localStorage.clear();
+      // } else if (error.response.status === 500) {
+      //   localStorage.clear();
       } else {
         console.error('Error fetching data:', error);
       }

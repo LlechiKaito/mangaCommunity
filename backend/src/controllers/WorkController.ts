@@ -6,68 +6,90 @@ import { stringify } from 'querystring';
 import fs from 'fs';
 import { title } from 'process';
 import { checkBookMarks } from './BookMarkController';
+import { associateTagsWithWorkForCreate, associateTagsWithWorkForUpdate } from './TagController';
+import { isLoggedIn } from './UserController';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
     log: ['query', 'info', 'warn', 'error']
 });
 
+// 本当はこれでprismaのものを代入しないといけん
+interface User {
+    id: number;
+    createdAt: Date;
+    updatedAt: Date;
+    login_id: string;
+    email_address: string;
+    password: string;
+    name: string;
+    authority_id: number;
+    password_reset_token: string | null;
+    password_reset_expires: Date | null;
+}
+
 //workの全表示//
 export const getWorks = async (req: Request, res: Response) => {
     try {
-        // クエリパラメータから検索条件を取得
-        const { title } = req.query;
-
-        // whereオブジェクトを初期化
-        const where: any = {};
-
-        // titleが指定されている場合のフィルタリング
-        if (title) {
-            where.title = {
-                contains: title as string
-            };
-        }
-
         // データベースからデータを取得
         const works = await prisma.work.findMany({
-            where,
-            select: {
-                id: true,
-                title: true,
-                explanation: true,
-                work_image: {
-                    select: {
-                        file_name: true
-                    }
+            include: {
+                work_image: true
+            }
+        });
+
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (decodedToken){
+
+            const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+
+            if (!user) {
+                res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+                return ;
+            }
+
+            // ログインしているユーザーに紐づくブックマークを全て取得する
+            const bookMarks = await prisma.book_mark.findMany({
+                where: {
+                    user_id: user.id
                 }
-            }
-        });
+            });
 
-        // ログインしているユーザーに紐づくブックマークを全て取得する
-        const bookMarks = await prisma.book_mark.findMany({
-            where: {
-                user_id: req.session.user_id
-            }
-        });
-
-        // 取得した作品に対してブックマークがされているかをboolean型で格納
-        const hasBookMarks = checkBookMarks(works, req.session.user_id, bookMarks);
-
-        // 結果をレスポンスとして返す
-        res.status(200).json({works, hasBookMarks});
+            // 取得した作品に対してブックマークがされているかをboolean型で格納
+            const hasBookMarks = checkBookMarks(works, user.id, bookMarks);
+            // 結果をレスポンスとして返す
+            res.status(200).json({works, hasBookMarks});
+            return ;
+        }
+        
+        res.status(200).json({works});
     } catch (error) {
         console.error("Error fetching works:", error);
         res.status(500).send('Internal Server Error');
     }
 };
 
+interface Tag {
+    id: number;
+    tag_name: string;
+}
+
 // workのrecord保存に関する関数
 export const createWork = async (req: Request, res: Response) => {
     try {
-        // ログインしていない場合、エラーを返す
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください。" });
-            return;
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
+            return ;
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
         }
 
         // バリデーションの実行
@@ -97,8 +119,7 @@ export const createWork = async (req: Request, res: Response) => {
         // typescriptなので、型宣言して代入をしている。
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
-        const user_id: number = req.session.user_id;
-        const tag: string = req.body.tag;
+        const tags: Tag[] = req.body.tags;
 
         // 画像ファイルがない場合、エラーを返す
         if (typeof req.file === "undefined"){
@@ -112,7 +133,7 @@ export const createWork = async (req: Request, res: Response) => {
         const work = await prisma.work.create({
             data: {
                 explanation: explanation,
-                user_id: user_id,
+                user_id: user.id,
                 title: title,
                 work_image: {
                     create: { file_name:  fileName}
@@ -120,21 +141,8 @@ export const createWork = async (req: Request, res: Response) => {
             },
         });
 
-        // タグについての処理.これは、TagControllerに移したい
-        if (tag) {
-            const existingTag = await prisma.tag.findFirst({
-                where: { tag_name: tag },
-            });
-
-            if (existingTag) {
-                await prisma.workTag.create({
-                    data: {
-                        work_id: work.id,
-                        tag_id: existingTag.id,
-                    },
-                });
-            }
-        }
+        const workId: number = work.id;
+        associateTagsWithWorkForCreate(workId, tags);
 
         // フロント側にworkを送る
         res.status(201).json(work);
@@ -148,16 +156,22 @@ export const createWork = async (req: Request, res: Response) => {
 // workの詳細表示に関する関数
 export const showWork = async (req: Request, res: Response) => {
     try {
-        // ログインしていない場合、エラーを返す
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください。" });
-            return;
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
         }
 
         // 一旦格納（処理に使うものは、型宣言した後に入れるようにしたい。tsなんで）
         // ここでなぜ、work_idとworkIdと分けているか疑問でしょ！
         // work_idをテーブル、処理で使うときworkIdで使うようにしているからである。
-        const userId: number = req.session.user_id;
         const workId: number = parseInt(req.params.id);
 
         // workIdに一致するrecordを格納する
@@ -219,14 +233,21 @@ export const deleteWork = async (req: Request, res: Response) => {
         // 型宣言しての格納
         const workId: number = parseInt(req.params.id);
 
-        // ログインしていない場合、エラーを返す
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください。" });
-            return;
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
         }
 
         // 詳しくは、一つ上の関数を参照
-        const work = await searchWork(req.session.user_id, workId);
+        const work = await searchWork(user.id, workId);
 
         // workがundifinedの場合、エラーを返す
         if (!work) {
@@ -264,10 +285,17 @@ export const updateWork = async (req: Request, res: Response) => {
         // 型宣言して格納する
         const workId: number = parseInt(req.params.id);
 
-        // ログインしていない場合、エラーを返す
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください。" });
-            return;
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
         }
 
         // バリデーションの実行
@@ -295,7 +323,7 @@ export const updateWork = async (req: Request, res: Response) => {
         }
 
         // 詳しくは、二つ上の関数を参照
-        const work = await searchWork(req.session.user_id, workId);
+        const work = await searchWork(user.id, workId);
 
         // workがundifinedの場合、エラーを返す
         if (!work) {
@@ -313,6 +341,7 @@ export const updateWork = async (req: Request, res: Response) => {
         const fileName: string = req.file.filename;
         const title: string = req.body.title;
         const explanation: string = req.body.explanation;
+        const tags: Tag[] = req.body.tags;
 
         // ファイルの格納場所の格納
         const filePath: string = "public/images/works/" + title + "/" + fileName;
@@ -334,7 +363,10 @@ export const updateWork = async (req: Request, res: Response) => {
                     }
                 }
             }
-        });
+        })
+
+        associateTagsWithWorkForUpdate(workId, tags);
+
         // フロント側にworkを送る
         res.status(200).json({ work: updateWork });
 

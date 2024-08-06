@@ -24,9 +24,16 @@ const AllWork: React.FC = () => {
         fetchWorks();
     }, []); //ページがロードされたときにレコードを取得する
 
+    // リクエストヘッダーの設定
+        const headers = {
+            'authorization': `Bearer ${getLocalStorage('token')}`,
+            'Content-Type': 'application/json',
+            // 他に必要なヘッダーがあれば追加する
+        };
+
     const fetchWorks = async () => {
         try {
-            const response = await axios.get("/works");
+            const response = await axios.get("/works", {headers});
             setHasBookMarks(response.data.hasBookMarks);
             setWorks(response.data.works);
         } catch (error) {

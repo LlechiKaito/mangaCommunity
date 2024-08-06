@@ -13,73 +13,87 @@ import session from 'express-session';
 import Redis from 'ioredis';
 // import connectRedis from 'connect-redis';
 import RedisStore from 'connect-redis';
+import { getUsersBySearch, getWorksBySearch } from './controllers/SearchController';
+import jwt from 'jsonwebtoken';
 
 const app: Express = express();
 // app.set("trust proxy", true);
 const port = 8080;
 
-const corsOptions: CorsOptions ={
-    origin: "http://localhost:3000",
-    credentials: true,
-};
 
-app.use(cors(corsOptions));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cookieParser());
 
-declare module 'express-session' {
-    interface SessionData {
-        user_id: number;
-        name: string;
-        authority_id: number;
-    }
-}
+// const corsOptions: CorsOptions ={
+//     origin: "http://localhost:3000",
+//     credentials: true,
+// };
+
+// app.use(cors(corsOptions));
+// app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// app.use(cookieParser());
+
+// declare module 'express-session' {
+//     interface SessionData {
+//         user_id: number;
+//         name: string;
+//         authority_id: number;
+//     }
+// }
 
 const secretKey = randomBytes(32).toString('hex');
 
-// RedisStore を初期化します
-// const RedisStore = connectRedis(session);
+app.use(express.json());
 
-// Redis クライアントを作成します
-const redisClient = new Redis({
-  host: "redis",
-  port: 6379,
-});
 
-// Redis クライアントに接続します
-redisClient.connect().catch(console.error);
 
-// Redis ストアを作成します
-const redisStore = new RedisStore({
-  client: redisClient,
-});
+// // RedisStore を初期化します
+// // const RedisStore = connectRedis(session);
 
-// セッションの設定
-app.use(session({
-    secret: process.env.SESSION_SECRET || secretKey,
-    resave: false,
-    saveUninitialized: false,
-    store: redisStore,
-    cookie: {
-    //     下記がエラーの原因だがわからん
-        secure: false, // HTTPSを使用する
-        httpOnly: true, // XSS攻撃を防ぐ
-        sameSite: 'strict', // CSRF攻撃を防ぐ
-        maxAge: 7200000 // セッションの有効期限を設定（例: 2時間）
-    }
-}));
+// // Redis クライアントを作成します
+// const redisClient = new Redis({
+//   host: "redis",
+//   port: 6379,
+// });
+
+// // Redis クライアントに接続します
+// redisClient.connect().catch(console.error);
+
+// // Redis ストアを作成します
+// const redisStore = new RedisStore({
+//   client: redisClient,
+// });
+
+// // セッションの設定
+// app.use(session({
+//     secret: process.env.SESSION_SECRET || secretKey,
+//     resave: false,
+//     saveUninitialized: false,
+//     store: redisStore,
+//     cookie: {
+//     //     下記がエラーの原因だがわからん
+//         secure: false, // HTTPSを使用する
+//         httpOnly: true, // XSS攻撃を防ぐ
+//         sameSite: 'strict', // CSRF攻撃を防ぐ
+//         maxAge: 7200000 // セッションの有効期限を設定（例: 2時間）
+//     }
+// }));
 
 // react側で画像を表示させるために必要なもの
 app.use('/api/images', express.static('/backend/public/images'));
 
 // user関係のルーティング
-app.get('/users', getUsers);
 app.post('/users/register', createUser);
 app.post('/users/login', loginUser);
 app.post('/users/logout', logoutUser);
+app.post('/users/forget/login_id', forgetLoginId);
+app.post('/users/forget/password', forgetPassword);
+app.put('/users/reset-password', resetPassword);
+app.get('/users/:id', getUserProfile);
+app.get('/users/result', getUsersBySearch);
+
 //work関係のルーティング
 app.get('/works', getWorks);
+app.get('/works/result', getWorksBySearch);
 app.post('/works/create', workImageUpload.single('image'), createWork);
 app.get('/works/create', getTags);
 app.get('/works/:id', showWork);
@@ -91,12 +105,12 @@ app.get('/book_marks', getBookMarks);
 app.post('/book_marks/:id', doBookMark);
 app.delete('/book_marks/:id', undoBookMark);
 
-app.post('/users/forget/login_id', forgetLoginId);
-app.post('/users/forget/password', forgetPassword);
-app.put('/users/reset-password', resetPassword);
-app.get('/users/:id', getUserProfile);
-//Tagのルーティング
-app.post('/users/:id', createTag);
+//Tagのルーティング(保留)
+app.post('/tags', createTag);
+
+// 新しい /tags エンドポイントを追加(保留)
+app.get('/tags', getTags);
+// app.post('/works/associate-tags', associateTagsWithWork);
 
 // Start the server
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

@@ -6,6 +6,7 @@ import Top from '../Top.tsx';
 import Header, { getLocalStorage } from '.././shared/Header.tsx';
 import { useParams } from 'react-router-dom';
 import AllBookMark from '../bookMarks/index.tsx';
+import AllTag from '../tags/index.tsx';
 
 type User = {
   name: string;
@@ -63,20 +64,7 @@ const Profile: React.FC = () => {
 
       {/* authority_idが1の場合のみタグを作成フォームを表示 */}
       {user && user.authority_id === 1 && (
-        <div>
-          <h2>タグを作成</h2>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              value={tagName}
-              onChange={(e) => setTagName(e.target.value)}
-              placeholder="タグ名を入力"
-              required
-            />
-            <button type="submit">タグを作成</button>
-          </form>
-          {message && <p>{message}</p>}
-        </div>
+        <AllTag />
       )}
       <AllBookMark />
     </div>

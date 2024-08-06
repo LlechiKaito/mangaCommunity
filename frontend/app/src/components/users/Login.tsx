@@ -17,6 +17,7 @@ const Login: React.FC = () => {
     const redirectUrl: string = "/";
     const userIdKey: string = "user_id";
     const nameKey: string = "name";
+    const tokenKey: string = "token";
     const expireTime: number = Date.now() + 2 * 60 * 60 * 1000; //二時間の期限
 
     try {
@@ -26,15 +27,20 @@ const Login: React.FC = () => {
       })
       .then((response) => {
         const userItem = {
-          value: response.data.id,
+          value: response.data.user.id,
           expiry: expireTime
         }
         const nameItem = {
-          value: response.data.name,
+          value: response.data.user.name,
+          expiry: expireTime
+        }
+        const tokenItem = {
+          value: response.data.token,
           expiry: expireTime
         }
         localStorage.setItem(userIdKey, JSON.stringify(userItem));
         localStorage.setItem(nameKey, JSON.stringify(nameItem));
+        localStorage.setItem(tokenKey, JSON.stringify(tokenItem));
         navigate(redirectUrl);
       });
     } catch (error) {

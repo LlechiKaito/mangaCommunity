@@ -2,6 +2,7 @@ import { Express, Request, Response } from 'express'; // Import types
 import { PrismaClient } from '@prisma/client';
 import bcrypt, { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
+import { isLoggedIn } from './UserController';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -10,15 +11,22 @@ const prisma = new PrismaClient({
 
 export const getBookMarks = async (req: Request, res: Response) => {
     try {
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください" });
-            return
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
         }
 
-        const userId: number = req.session.user_id;
+        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
+        }
+
         const bookMarks = await prisma.book_mark.findMany({
             where: {
-                user_id: userId
+                user_id: user.id
             },
             include: {
                 work: {
@@ -45,20 +53,27 @@ export const getBookMarks = async (req: Request, res: Response) => {
 
 export const doBookMark = async (req: Request, res: Response) => {
     try {
-        // ログインしていない場合、エラーを返す
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください。" });
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
             return;
         }
 
+        const user = await prisma.user.findUnique({ where: { id: decodedToken.user_id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
+        }
+
         // 宣言して格納する。
-        const userId: number = req.session.user_id;
         const workId: number = parseInt(req.params.id);
 
         // workIdとuserIdでbook_markのレコードの作成
         const book_mark = await prisma.book_mark.create({
             data: {
-                user_id: userId,
+                user_id: user.id,
                 work_id: workId,
             },
         });
@@ -73,21 +88,28 @@ export const doBookMark = async (req: Request, res: Response) => {
 
 export const undoBookMark = async (req: Request, res: Response) => {
     try {
-        // ログインしていない場合、エラーを返す
-        if (!req.session.user_id) {
-            res.status(403).json({ error: "ログインしてください。" });
-            return;
+        const decodedToken = await isLoggedIn(req, res);
+
+        if (!decodedToken){
+            res.status(403).json({ error: 'ログインしていません。' });
+            return
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: decodedToken.user_id } });
+
+        if (!user) {
+            res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+            return ;
         }
 
         // 型宣言して格納する
-        const userId: number = req.session.user_id;
         const workId: number = parseInt(req.params.id);
 
         // userIdとworkIdが一致するbook_markの削除
         await prisma.book_mark.delete({
             where: {
                 user_id_work_id: {
-                    user_id: userId,
+                    user_id: user.id,
                     work_id: workId
                 }
             }
