@@ -4,13 +4,7 @@ name: frontend_ci
 # トリガーになる Github イベント
 on:
   pull_request:
-    branches:
-      - develop
-    # ルート直下の場合は不要
-    paths:
-      - "frontend/**"
-  # 無くても良い（手動実行したい人だけ残す）
-  workflow_dispatch:
+    branches: [ main]
 
 # 環境変数を設定
 env:
@@ -30,7 +24,7 @@ jobs:
     strategy:
       matrix:
         # 使用するNode.jsのバージョンを定義
-        node-version: [20.10.0]
+        node-version: [18.15.0]
     # GitHub Actionsの権限設定
     permissions:
       contents: read
