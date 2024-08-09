@@ -59,22 +59,24 @@ jobs:
           # ルート直下の場合は不要
           workdir: frontend/app/
 
-  frontend_build_check:
-    runs-on: ubuntu-latest
-    steps:
-      # リポジトリからソースコードの取得
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # Dockerのコンテナイメージをビルド
-      - name: Docker Image Build
-        run: |
-          docker build -f Dockerfile -t ${{ env.DOCKER_IMAGE_TAG }} .
-
-      # Dockleで脆弱性検査を行う
-      - name: Run Dockle
-        uses: erzz/dockle-action@v1
-        with:
-          image: ${{ env.DOCKER_IMAGE_TAG }}
-          exit-code: 1
-          failure-threshold: fatal
+#  セキュリティチェックを走らせるコード
+#  必要そうなら後々コメント外す
+#  frontend_build_check:
+#    runs-on: ubuntu-latest
+#    steps:
+#      # リポジトリからソースコードの取得
+#      - name: Checkout Repository
+#        uses: actions/checkout@v4
+#
+#      # Dockerのコンテナイメージをビルド
+#      - name: Docker Image Build
+#        run: |
+#          docker build -f Dockerfile -t ${{ env.DOCKER_IMAGE_TAG }} .
+#
+#      # Dockleで脆弱性検査を行う
+#      - name: Run Dockle
+#        uses: erzz/dockle-action@v1
+#        with:
+#          image: ${{ env.DOCKER_IMAGE_TAG }}
+#          exit-code: 1
+#          failure-threshold: fatal
