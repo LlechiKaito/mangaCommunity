@@ -3,12 +3,10 @@ name: frontend_ci
 
 # トリガーになる Github イベント
 on:
+  push:
+    branches: 
+      - "main"
   pull_request:
-    branches: [ main]
-
-# 環境変数を設定
-env:
-  DOCKER_IMAGE_TAG: "frontend"
 
 # デフォルトの作業ディレクトリ変更
 # ルート直下の場合は不要
@@ -61,6 +59,10 @@ jobs:
 
 #  セキュリティチェックを走らせるコード
 #  必要そうなら後々コメント外す
+# 環境変数を設定
+#env:
+#  DOCKER_IMAGE_TAG: "frontend"
+#
 #  frontend_build_check:
 #    runs-on: ubuntu-latest
 #    steps:
