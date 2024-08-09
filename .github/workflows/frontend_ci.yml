@@ -1,0 +1,86 @@
+# ワークフローの名前
+name: frontend_ci
+
+# トリガーになる Github イベント
+on:
+  pull_request:
+    branches:
+      - develop
+    # ルート直下の場合は不要
+    paths:
+      - "frontend/**"
+  # 無くても良い（手動実行したい人だけ残す）
+  workflow_dispatch:
+
+# 環境変数を設定
+env:
+  DOCKER_IMAGE_TAG: "frontend"
+
+# デフォルトの作業ディレクトリ変更
+# ルート直下の場合は不要
+defaults:
+  run:
+    working-directory: frontend
+
+# ジョブ定義
+jobs:
+  # ジョブ名
+  frontend_lint_check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 使用するNode.jsのバージョンを定義
+        node-version: [20.10.0]
+    # GitHub Actionsの権限設定
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # リポジトリからソースコードの取得
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Node.jsのセットアップ
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          # 利用したいNode.jsバージョンを指定
+          node-version: ${{ matrix.node-version }}
+          # npmのキャッシュを使用する設定
+          cache: "npm"
+          # ルート直下の場合は「./package-lock.json」に変更
+          cache-dependency-path: ./frontend/package-lock.json
+
+      # プロジェクトの依存関係をインストール
+      - name: Install Dependencies
+        run: npm ci
+
+      # ReviewdogをESLintで実行
+      - name: Run ESLint Reviewdog
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          eslint_flags: "src/**/*.{ts,tsx}"
+          # ルート直下の場合は不要
+          workdir: frontend/
+
+  frontend_build_check:
+    runs-on: ubuntu-latest
+    steps:
+      # リポジトリからソースコードの取得
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Dockerのコンテナイメージをビルド
+      - name: Docker Image Build
+        run: |
+          docker build -f Dockerfile -t ${{ env.DOCKER_IMAGE_TAG }} .
+
+      # Dockleで脆弱性検査を行う
+      - name: Run Dockle
+        uses: erzz/dockle-action@v1
+        with:
+          image: ${{ env.DOCKER_IMAGE_TAG }}
+          exit-code: 1
+          failure-threshold: fatal
