@@ -57,7 +57,7 @@ jobs:
           reporter: github-pr-review
           eslint_flags: "src/**/*.{ts,tsx}"
           # ルート直下の場合は不要
-          workdir: frontend/
+          workdir: frontend/app/
 
   frontend_build_check:
     runs-on: ubuntu-latest
