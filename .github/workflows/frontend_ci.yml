@@ -14,7 +14,7 @@ env:
 # ルート直下の場合は不要
 defaults:
   run:
-    working-directory: frontend
+    working-directory: frontend/app
 
 # ジョブ定義
 jobs:
@@ -43,7 +43,7 @@ jobs:
           # npmのキャッシュを使用する設定
           cache: "npm"
           # ルート直下の場合は「./package-lock.json」に変更
-          cache-dependency-path: ./frontend/package-lock.json
+          cache-dependency-path: ./frontend/app/package-lock.json
 
       # プロジェクトの依存関係をインストール
       - name: Install Dependencies
