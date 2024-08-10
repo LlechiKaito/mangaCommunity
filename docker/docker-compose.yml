@@ -20,7 +20,8 @@ services:
     networks:
       - react_express
 
-  frontend:  # React用のコンテナ
+  frontend:
+    # React用のコンテナ
     build: .
     container_name: front
     env_file: ./.env
@@ -35,7 +36,8 @@ services:
     depends_on:
       - mysql
 
-  backend:  # Express用のコンテナ
+  backend:
+    # Express用のコンテナ
     build: .
     container_name: back
     env_file: ./.env
@@ -45,6 +47,7 @@ services:
     working_dir: "/backend"
     ports:
       - 8080:8080
+      - 5555:5555
     networks:
       - react_express
     depends_on:

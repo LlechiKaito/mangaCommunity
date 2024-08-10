@@ -18,6 +18,7 @@ type Work = {
 const AllWork: React.FC = () => {
     const [works, setWorks] = useState<Work[]>([]);
     const [hasBookMarks, setHasBookMarks] = useState<boolean[]>([]);
+    const [searchTitle, setSearchTitle] = useState<string>("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -25,23 +26,26 @@ const AllWork: React.FC = () => {
     }, []); //ページがロードされたときにレコードを取得する
 
     // リクエストヘッダーの設定
-        const headers = {
-            'authorization': `Bearer ${getLocalStorage('token')}`,
-            'Content-Type': 'application/json',
-            // 他に必要なヘッダーがあれば追加する
-        };
+    const headers = {
+        'authorization': `Bearer ${getLocalStorage('token')}`,
+        'Content-Type': 'application/json',
+        // 他に必要なヘッダーがあれば追加する
+    };
 
-    const fetchWorks = async () => {
+    const handleSearch = () => {
+        fetchWorks(searchTitle);
+    };
+
+    const fetchWorks = async (title = "") => {
         try {
-            const response = await axios.get("/works", {headers});
+            const response = await axios.get(`/works?title=${encodeURIComponent(title)}`, { headers });
             setHasBookMarks(response.data.hasBookMarks);
             setWorks(response.data.works);
         } catch (error) {
             if (error.response && error.response.status === 403) {
-                // セッションが無効な場合、localStorageをclearする
                 localStorage.clear();
             } else {
-                console.error('Error fetching data:', error);
+                console.error('データの取得中にエラーが発生しました:', error);
             }
         }
     };
@@ -50,7 +54,14 @@ const AllWork: React.FC = () => {
         <div>
             <Header />
             <h1>All Works</h1>
-            <button onClick={() => navigate("./create")}>Create New Work</button>
+            <input
+                type="text"
+                value={searchTitle}
+                onChange={(e) => setSearchTitle(e.target.value)}
+                placeholder="タイトルで検索"
+            />
+            <button onClick={handleSearch}>検索</button>
+            <button onClick={() => navigate("./create")}>新しい作品を作成</button>
             <ul>
                 {works.map((work, index) => (
                     <li key={index}>

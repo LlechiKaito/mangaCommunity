@@ -8,6 +8,7 @@ import { title } from 'process';
 import { checkBookMarks } from './BookMarkController';
 import { associateTagsWithWorkForCreate, associateTagsWithWorkForUpdate } from './TagController';
 import { isLoggedIn } from './UserController';
+import { searchByTitle } from './SearchController';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -31,22 +32,28 @@ interface User {
 //workの全表示//
 export const getWorks = async (req: Request, res: Response) => {
     try {
-        // データベースからデータを取得
+        const { title } = req.query;
+
+        // タイトルに基づいた検索フィルターを作成
+        const searchFilter = title ? await searchByTitle(title as string) : {};
+
+        // データベースからフィルターに基づいて作品を取得
         const works = await prisma.work.findMany({
+            where: searchFilter,
             include: {
-                work_image: true
-            }
+                work_image: true,
+            },
         });
 
         const decodedToken = await isLoggedIn(req, res);
 
-        if (decodedToken){
+        if (decodedToken) {
 
             const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
             if (!user) {
                 res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
-                return ;
+                return;
             }
 
             // ログインしているユーザーに紐づくブックマークを全て取得する
@@ -59,11 +66,11 @@ export const getWorks = async (req: Request, res: Response) => {
             // 取得した作品に対してブックマークがされているかをboolean型で格納
             const hasBookMarks = checkBookMarks(works, user.id, bookMarks);
             // 結果をレスポンスとして返す
-            res.status(200).json({works, hasBookMarks});
-            return ;
+            res.status(200).json({ works, hasBookMarks });
+            return;
         }
-        
-        res.status(200).json({works});
+
+        res.status(200).json({ works });
     } catch (error) {
         console.error("Error fetching works:", error);
         res.status(500).send('Internal Server Error');
@@ -80,16 +87,16 @@ export const createWork = async (req: Request, res: Response) => {
     try {
         const decodedToken = await isLoggedIn(req, res);
 
-        if (!decodedToken){
+        if (!decodedToken) {
             res.status(403).json({ error: 'ログインしていません。' });
-            return ;
+            return;
         }
 
         const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
-            return ;
+            return;
         }
 
         // バリデーションの実行
@@ -122,9 +129,9 @@ export const createWork = async (req: Request, res: Response) => {
         const tags: Tag[] = req.body.tags;
 
         // 画像ファイルがない場合、エラーを返す
-        if (typeof req.file === "undefined"){
-            res.status(400).json({error: "画像ファイルがありません。"})
-            return ;
+        if (typeof req.file === "undefined") {
+            res.status(400).json({ error: "画像ファイルがありません。" })
+            return;
         }
         // 画像ファイルの格納については、ImageControllerを参照してね
         const fileName: string = req.file.filename;
@@ -136,7 +143,7 @@ export const createWork = async (req: Request, res: Response) => {
                 user_id: user.id,
                 title: title,
                 work_image: {
-                    create: { file_name:  fileName}
+                    create: { file_name: fileName }
                 },
             },
         });
@@ -158,7 +165,7 @@ export const showWork = async (req: Request, res: Response) => {
     try {
         const decodedToken = await isLoggedIn(req, res);
 
-        if (!decodedToken){
+        if (!decodedToken) {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
@@ -166,7 +173,7 @@ export const showWork = async (req: Request, res: Response) => {
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
-            return ;
+            return;
         }
 
         // 一旦格納（処理に使うものは、型宣言した後に入れるようにしたい。tsなんで）
@@ -199,7 +206,7 @@ export const showWork = async (req: Request, res: Response) => {
         }
 
         // フロント側にworkを送る
-        res.status(200).json({ work }); 
+        res.status(200).json({ work });
     } catch (error) {
         // インターネットの通信についてのエラーね
         console.error("Error fetching work:", error);
@@ -218,7 +225,7 @@ const searchWork = async (myselfUserId: number, workId: number) => {
             work_image: true
         }
     })
-    
+
     // 上記のworkのuser_idと引数のuser_id(sessionのuser_id)が一致する場合、workを送る
     if (myselfUserId === targetWork?.user_id) {
         return targetWork;
@@ -235,7 +242,7 @@ export const deleteWork = async (req: Request, res: Response) => {
 
         const decodedToken = await isLoggedIn(req, res);
 
-        if (!decodedToken){
+        if (!decodedToken) {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
@@ -243,7 +250,7 @@ export const deleteWork = async (req: Request, res: Response) => {
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
-            return ;
+            return;
         }
 
         // 詳しくは、一つ上の関数を参照
@@ -252,7 +259,7 @@ export const deleteWork = async (req: Request, res: Response) => {
         // workがundifinedの場合、エラーを返す
         if (!work) {
             res.status(400).json({ error: "権限がありません。" })
-            return ;
+            return;
         }
 
         // 削除予定のフォルダーのパスの格納
@@ -287,7 +294,7 @@ export const updateWork = async (req: Request, res: Response) => {
 
         const decodedToken = await isLoggedIn(req, res);
 
-        if (!decodedToken){
+        if (!decodedToken) {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
@@ -295,7 +302,7 @@ export const updateWork = async (req: Request, res: Response) => {
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
-            return ;
+            return;
         }
 
         // バリデーションの実行
@@ -328,13 +335,13 @@ export const updateWork = async (req: Request, res: Response) => {
         // workがundifinedの場合、エラーを返す
         if (!work) {
             res.status(403).json({ error: "権限がありません。" })
-            return ;
+            return;
         }
 
         // 画像ファイルがない場合、エラーを返す
-        if (typeof req.file === "undefined"){
-            res.status(400).json({error: "画像ファイルがありません。"})
-            return ;
+        if (typeof req.file === "undefined") {
+            res.status(400).json({ error: "画像ファイルがありません。" })
+            return;
         }
 
         // 型宣言からの格納
@@ -354,11 +361,11 @@ export const updateWork = async (req: Request, res: Response) => {
         // workの更新処理
         await prisma.work.update({
             where: { id: workId },
-            data: { 
-                title: title, 
-                explanation: explanation, 
+            data: {
+                title: title,
+                explanation: explanation,
                 work_image: {
-                    update:{
+                    update: {
                         file_name: fileName,
                     }
                 }
