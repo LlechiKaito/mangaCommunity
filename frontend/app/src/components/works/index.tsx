@@ -33,12 +33,27 @@ const AllWork: React.FC = () => {
     };
 
     const handleSearch = () => {
-        fetchWorks(searchTitle);
+        fetchSearchWorks(searchTitle);
     };
 
     const fetchWorks = async (title = "") => {
         try {
-            const response = await axios.get(`/works?title=${encodeURIComponent(title)}`, { headers });
+            const response = await axios.get(`/works`, { headers });
+            setHasBookMarks(response.data.hasBookMarks);
+            setWorks(response.data.works);
+        } catch (error) {
+            if (error.response && error.response.status === 403) {
+                localStorage.clear();
+            } else {
+                console.error('データの取得中にエラーが発生しました:', error);
+            }
+        }
+    };
+
+    // これをsearchesの方で処理したいけど、今は、一緒で一旦OK
+    const fetchSearchWorks = async (title = "") => {
+        try {
+            const response = await axios.get(`/works/result?title=${encodeURIComponent(title)}`, { headers });
             setHasBookMarks(response.data.hasBookMarks);
             setWorks(response.data.works);
         } catch (error) {
@@ -65,7 +80,9 @@ const AllWork: React.FC = () => {
             <ul>
                 {works.map((work, index) => (
                     <li key={index}>
-                        <CreateBookmark id={work.id} isBookMark={hasBookMarks[index]} />
+                        {hasBookMarks && (
+                            <CreateBookmark id={work.id} isBookMark={hasBookMarks[index]} />
+                        )}
                         <h3>{work.title}</h3>
                         <p>{work.explanation}</p>
                         <p>{work.work_image.file_name}</p>

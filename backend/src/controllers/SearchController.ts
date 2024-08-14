@@ -1,6 +1,8 @@
 // SearchController.ts
 import { PrismaClient } from '@prisma/client';
 import { Express, Request, Response } from 'express'; // Import types
+import { isLoggedIn } from './UserController';
+import { checkBookMarks } from './BookMarkController';
 
 const prisma = new PrismaClient();
 
@@ -73,54 +75,45 @@ export const getUsersBySearch = async (req: Request, res: Response) => {
 //workの全表示//
 export const getWorksBySearch = async (req: Request, res: Response) => {
     try {
-        const { title, tag_names } = req.query;
+        const { title } = req.query;
 
-        // anyは使わないで欲しい型を宣言してください。
-        const where: any = {};
+        // タイトルに基づいた検索フィルターを作成
+        const searchFilter = title ? await searchByTitle(title as string) : {};
 
-        if (title) {
-            const titleCondition = await searchByTitle(title as string);
-            where.title = titleCondition.title;
-        }
-
-        if (tag_names) {
-            const tagsConditions = await searchByTags(tag_names as string | string[]);
-            if (Object.keys(tagsConditions).length > 0) {
-                where.AND = tagsConditions.AND;
-            }
-        }
-
+        // データベースからフィルターに基づいて作品を取得
         const works = await prisma.work.findMany({
-            where,
-            select: {
-                id: true,
-                title: true,
-                explanation: true,
-                work_image: {
-                    select: {
-                        file_name: true,
-                    },
-                },
-                work_tags: {
-                    select: {
-                        tag: {
-                            select: {
-                                tag_name: true,
-                            },
-                        },
-                    },
-                },
+            where: searchFilter,
+            include: {
+                work_image: true,
             },
         });
 
-        // ヒットしない時の処理をかいて
+        const decodedToken = await isLoggedIn(req, res);
 
-        if (works.length === 0) {
-            // ヒットしない場合の処理を記述する
-            res.status(404).json({ message: 'No works found' });
-        } else {
-            res.json(works);
+        if (decodedToken) {
+
+            const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+
+            if (!user) {
+                res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
+                return;
+            }
+
+            // ログインしているユーザーに紐づくブックマークを全て取得する
+            const bookMarks = await prisma.book_mark.findMany({
+                where: {
+                    user_id: user.id
+                }
+            });
+
+            // 取得した作品に対してブックマークがされているかをboolean型で格納
+            const hasBookMarks = checkBookMarks(works, user.id, bookMarks);
+            // 結果をレスポンスとして返す
+            res.status(200).json({ works, hasBookMarks });
+            return;
         }
+
+        res.status(200).json({ works });
     } catch (error) {
         console.error("Error fetching works:", error);
         res.status(500).send('Internal Server Error');
