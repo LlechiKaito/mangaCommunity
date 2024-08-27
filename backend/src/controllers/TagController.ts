@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt, { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import { stringify } from 'querystring';
-import { isLoggedIn } from './UserController';
+import { isLoggedIn } from './users/IsLoggedIn';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({

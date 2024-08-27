@@ -7,7 +7,7 @@ import fs from 'fs';
 import { title } from 'process';
 import { checkBookMarks } from './BookMarkController';
 import { associateTagsWithWorkForCreate, associateTagsWithWorkForUpdate } from './TagController';
-import { isLoggedIn } from './UserController';
+import { isLoggedIn } from './users/IsLoggedIn';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({

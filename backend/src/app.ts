@@ -1,6 +1,15 @@
 import express from 'express';
 import { Express, Request, Response } from 'express'; // Import types
-import { createUser, forgetLoginId, forgetPassword, getUsers, loginUser, logoutUser, resetPassword, getUserProfile } from './controllers/UserController';
+
+import { createUser } from './controllers/users/CreateUser';
+import { forgetLoginId } from './controllers/users/ForgetLoginId';
+import { forgetPassword } from './controllers/users/ForgetPassword';
+import { getUsers } from './controllers/users/GetUsers';
+import { loginUser } from './controllers/users/LoginUser';
+import { logoutUser } from './controllers/users/LogoutUser';
+import { resetPassword } from './controllers/users/ResetPassword';
+import { getUserProfile } from './controllers/users/GetUserProfile';
+
 import { createWork, getWorks, showWork, deleteWork, updateWork } from './controllers/WorkController';
 import { workImageUpload } from './controllers/ImageController';
 import { doBookMark, undoBookMark, getBookMarks } from './controllers/BookMarkController';
