@@ -14,8 +14,27 @@ const CreateWork: React.FC = () => {
   const [explanation, setExplanation] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [workImage, setWorkImage] = useState<File>();
-  const [tagNames, setTagNames] = useState<string[]>([]);
   const navigate = useNavigate();
+
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  useEffect(() => {
+      fetchTags();
+  }, []); //ページがロードされたときにレコードを取得する
+
+  const fetchTags = async () => {
+      try {
+          const response = await axios.get("/tags");
+          setTags(response.data);
+      } catch (error) {
+          if (error.response && error.response.status === 403) {
+              // セッションが無効な場合、localStorageをclearする
+              localStorage.clear();
+          } else {
+              console.error('Error fetching data:', error);
+          }
+      }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -24,6 +43,7 @@ const CreateWork: React.FC = () => {
       formData.append("explanation", explanation);
       formData.append("title", title);
       formData.append("image", workImage as File);
+      formData.append('tags', JSON.stringify(tags));
 
       // リクエストヘッダーの設定
       const headers = {

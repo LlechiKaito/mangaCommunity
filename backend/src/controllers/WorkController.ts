@@ -119,7 +119,7 @@ export const createWork = async (req: Request, res: Response) => {
         // typescriptなので、型宣言して代入をしている。
         const explanation: string = req.body.explanation;
         const title: string = req.body.title;
-        const tags: Tag[] = req.body.tags;
+        const tags: Tag[] = JSON.parse(req.body.tags);
 
         // 画像ファイルがない場合、エラーを返す
         if (typeof req.file === "undefined"){

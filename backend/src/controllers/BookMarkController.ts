@@ -17,7 +17,7 @@ export const getBookMarks = async (req: Request, res: Response) => {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
