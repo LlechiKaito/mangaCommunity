@@ -1,7 +1,7 @@
 // SearchController.ts
 import { PrismaClient } from '@prisma/client';
 import { Express, Request, Response } from 'express'; // Import types
-import { isLoggedIn } from './UserController';
+import { isLoggedIn } from './users/IsLoggedIn';
 import { checkBookMarks } from './BookMarkController';
 
 const prisma = new PrismaClient();
