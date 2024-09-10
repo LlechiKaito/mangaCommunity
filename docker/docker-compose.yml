@@ -30,7 +30,6 @@ services:
       - ../frontend:/frontend
     working_dir: "/frontend"
     ports:
-      - 3000:3000
       - 3001:3001
     networks:
       - react_express
@@ -59,14 +58,6 @@ services:
     ports:
       - '8025:8025'
       - '1025:1025'
-    networks:
-      - react_express
-
-  redis:
-    image: redis:latest
-    container_name: my-redis
-    ports:
-      - "6379:6379"
     networks:
       - react_express
 
