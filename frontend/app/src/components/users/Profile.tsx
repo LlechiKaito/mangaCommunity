@@ -7,11 +7,7 @@ import Header, { getLocalStorage } from '.././shared/Header.tsx';
 import { useParams } from 'react-router-dom';
 import AllBookMark from '../bookMarks/index.tsx';
 import AllTag from '../tags/index.tsx';
-
-type User = {
-  name: string;
-  authority_id: number;
-}
+import User from './Type.ts';
 
 const Profile: React.FC = () => {
 
@@ -26,6 +22,7 @@ const Profile: React.FC = () => {
   const fetchUserProfile = async () => {
     try {
       const response = await axios.get(`/users/${id}`);
+      console.log(response)
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
