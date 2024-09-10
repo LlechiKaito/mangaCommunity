@@ -31,6 +31,7 @@ services:
     working_dir: "/frontend"
     ports:
       - 3000:3000
+      - 3001:3001
     networks:
       - react_express
     depends_on:
