@@ -42,7 +42,7 @@ export const getWorks = async (req: Request, res: Response) => {
 
         if (decodedToken){
 
-            const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+            const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
             if (!user) {
                 res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
@@ -85,7 +85,7 @@ export const createWork = async (req: Request, res: Response) => {
             return ;
         }
 
-        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
@@ -162,7 +162,7 @@ export const showWork = async (req: Request, res: Response) => {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
@@ -239,7 +239,7 @@ export const deleteWork = async (req: Request, res: Response) => {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
@@ -291,7 +291,7 @@ export const updateWork = async (req: Request, res: Response) => {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });

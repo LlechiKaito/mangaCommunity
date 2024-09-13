@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
+import { User } from './Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -79,7 +80,7 @@ export const createUser = async (req: Request, res: Response) => {
         const hashed_password: string = await bcrypt.hash(password, saltRounds);
         const name: string = req.body.name; 
         const authority_id: number = 2;
-        const user = await prisma.user.create({
+        const user: User = await prisma.user.create({
             data: {
                 login_id: login_id,
                 email_address: email_address,

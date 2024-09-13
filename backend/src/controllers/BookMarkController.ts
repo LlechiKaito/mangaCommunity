@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt, { hash } from 'bcrypt';
 import { body, validationResult } from 'express-validator';
 import { isLoggedIn } from './users/IsLoggedIn';
+import { User } from './users/Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -17,7 +18,7 @@ export const getBookMarks = async (req: Request, res: Response) => {
             res.status(403).json({ error: 'ログインしていません。' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
@@ -60,7 +61,7 @@ export const doBookMark = async (req: Request, res: Response) => {
             return;
         }
 
-        const user = await prisma.user.findUnique({ where: { id: decodedToken.user_id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: decodedToken.user_id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
@@ -95,7 +96,7 @@ export const undoBookMark = async (req: Request, res: Response) => {
             return
         }
 
-        const user = await prisma.user.findUnique({ where: { id: decodedToken.user_id } });
+        const user: User | null = await prisma.user.findUnique({ where: { id: decodedToken.user_id } });
 
         if (!user) {
             res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });
