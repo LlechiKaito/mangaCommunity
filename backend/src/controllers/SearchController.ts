@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { Express, Request, Response } from 'express'; // Import types
 import { isLoggedIn } from './users/IsLoggedIn';
 import { checkBookMarks } from './BookMarkController';
+import { User } from './users/Type';
 
 const prisma = new PrismaClient();
 
@@ -58,7 +59,7 @@ export const getUsersBySearch = async (req: Request, res: Response) => {
             };
         }
 
-        const users = await prisma.user.findMany({
+        const users: User[] = await prisma.user.findMany({
             where: searchCriteria,
             include: {
                 authority: true,
@@ -92,7 +93,7 @@ export const getWorksBySearch = async (req: Request, res: Response) => {
 
         if (decodedToken) {
 
-            const user = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
+            const user: User | null = await prisma.user.findUnique({ where: { id: (decodedToken as any).user_id } });
 
             if (!user) {
                 res.status(404).json({ error: 'ユーザーが見つかりませんでした。' });

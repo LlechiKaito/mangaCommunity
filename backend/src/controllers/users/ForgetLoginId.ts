@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import nodemailer from 'nodemailer';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
+import { User } from './Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -15,7 +16,7 @@ export const forgetLoginId = async (req: Request, res: Response) => {
         const from: string = "llechi0420@gmail.com";
         const to: string = req.body.email_address;
 
-        const user = await prisma.user.findUnique({
+        const user: User | null = await prisma.user.findUnique({
             where: {
                 email_address: to,
             },

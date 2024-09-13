@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
+import { User } from './Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -53,7 +54,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             const nowTimeDate: Date = new Date();
             const userId: number = decodedToken.id;
 
-            const user = await prisma.user.findUnique({
+            const user: User | null = await prisma.user.findUnique({
                 where: {
                     id: userId,
                     password_reset_token: token,

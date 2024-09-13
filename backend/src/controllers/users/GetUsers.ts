@@ -2,6 +2,7 @@ import { Request, Response } from 'express'; // Import types
 import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
+import { User } from './Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -11,7 +12,7 @@ const prisma = new PrismaClient({
 // 全表示
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const users = await prisma.user.findMany({
+        const users: User[] = await prisma.user.findMany({
             include: {
                 authority: true,
             },

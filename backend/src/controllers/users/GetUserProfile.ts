@@ -2,6 +2,7 @@ import { Request, Response } from 'express'; // Import types
 import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
+import { User } from './Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -12,9 +13,8 @@ export const getUserProfile = async (req: Request, res: Response) => {
     try {
         const userId = parseInt(req.params.id);
 
-        const user = await prisma.user.findUnique({
+        const user: User | null = await prisma.user.findUnique({
             where: { id: userId },
-            select: { authority_id: true, name: true } // ③authority_idとnameを取得
         });
 
         if (!user) {

@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '../../../.env' }); // .envファイルへのパス
+import { User } from './Type';
 
 // prismaのログの確認のためのやつ
 const prisma = new PrismaClient({
@@ -19,7 +20,7 @@ export const loginUser = async (req: Request, res: Response) => {
         const login_id: string = req.body.login_id;
         const password: string = req.body.password;
 
-        const user = await prisma.user.findUnique({
+        const user: User | null = await prisma.user.findUnique({
             where: {
                 login_id: login_id,
             },
