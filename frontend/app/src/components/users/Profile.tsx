@@ -21,7 +21,7 @@ const Profile: React.FC = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await axios.get(`/users/${id}`);
+      const response = await axios.get(`/api/users/${id}`);
       console.log(response)
       setUser(response.data);
     } catch (error) {
@@ -37,7 +37,7 @@ const Profile: React.FC = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`/users/${id}`, { tag_name: tagName });
+      const response = await axios.post(`/api/users/${id}`, { tag_name: tagName });
       setMessage('タグが作成されました: ${response.data.tag_name}');
       setTagName('');
     } catch (error) {

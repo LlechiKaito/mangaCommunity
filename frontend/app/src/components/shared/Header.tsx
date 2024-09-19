@@ -46,7 +46,7 @@ const Header: React.FC = () => {
   const onLogout = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let url: string = "/users/logout";
+    let url: string = "/api/users/logout";
     const afterUrl: string = window.location.pathname;
 
     // リクエストヘッダーの設定

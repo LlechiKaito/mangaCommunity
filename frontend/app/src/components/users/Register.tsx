@@ -17,7 +17,7 @@ const Register: React.FC = () => {
   const RegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const url: string = "/users/register";
+    const url: string = "/api/users/register";
 
     try {
       await axios.post(url, {

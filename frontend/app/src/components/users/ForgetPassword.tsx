@@ -12,7 +12,7 @@ const ForgetPassword: React.FC = () => {
     const ForgetPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
             
-        const url: string = "/users/forget/password";
+        const url: string = "/api/users/forget/password";
         const redirectUrl: string = "/users/after-send-email";
     
         try {

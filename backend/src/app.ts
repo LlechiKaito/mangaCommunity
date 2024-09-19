@@ -91,14 +91,14 @@ app.use(express.json());
 app.use('/api/images', express.static('/backend/public/images'));
 
 // user関係のルーティング
-app.post('/users/register', createUser);
-app.post('/users/login', loginUser);
-app.post('/users/logout', logoutUser);
-app.post('/users/forget/login_id', forgetLoginId);
-app.post('/users/forget/password', forgetPassword);
-app.put('/users/reset-password', resetPassword);
-app.get('/users/:id', getUserProfile);
-app.get('/users/result', getUsersBySearch);
+app.post('/api/users/register', createUser);
+app.post('/api/users/login', loginUser);
+app.post('/api/users/logout', logoutUser);
+app.post('/api/users/forget/login_id', forgetLoginId);
+app.post('/api/users/forget/password', forgetPassword);
+app.put('/api/users/reset-password', resetPassword);
+app.get('/api/users/:id', getUserProfile);
+app.get('/api/users/result', getUsersBySearch);
 
 //work関係のルーティング
 app.get('/works', getWorks);
