@@ -40,7 +40,7 @@ export const loginUser = async (req: Request, res: Response) => {
             );
             res.status(200).json({user, token});
         } else {
-            res.status(400).json({ error_password: "このユーザーIDのパスワードが間違えています。", user: user });
+            res.status(400).json({ error: "このユーザーIDのパスワードが間違えています。", user: user });
         }
     } catch (error) {
         console.error("Error fetching users:", error);

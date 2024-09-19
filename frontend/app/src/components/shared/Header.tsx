@@ -41,6 +41,7 @@ const isLoggedIn = () => {
 
 const Header: React.FC = () => {
 
+  const [error, setError] = useState<string>('')
   const navigate = useNavigate();
 
   const onLogout = async (e: React.FormEvent) => {
@@ -63,14 +64,8 @@ const Header: React.FC = () => {
       localStorage.clear();
       navigate(afterUrl);
     } catch (error) {
-      if (error.response && error.response.status === 403) {
-        // セッションが無効な場合、localStorageをclearする
-        localStorage.clear();
-      // } else if (error.response.status === 500) {
-      //   localStorage.clear();
-      } else {
-        console.error('Error fetching data:', error);
-      }
+      setError(error.response.data.error)
+      console.error('Error fetching data:', error.response.data.error);
     }
     
   }
@@ -86,6 +81,7 @@ const Header: React.FC = () => {
       return (
         <div>
           <button onClick={onLogout}>ログアウト</button>
+          <p>{error}</p>
           <div>{localName}でログインしています。</div>
           <Link to={`/users/${localUserId}`}>プロフィールへ</Link>
         </div>

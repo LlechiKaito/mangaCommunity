@@ -14,8 +14,8 @@ const Profile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
   const [tagName, setTagName] = useState<string>('');
-  const [message, setMessage] = useState<string | null>('null');
   const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string>('')
 
   const navigate = useNavigate();
 
@@ -38,15 +38,10 @@ const Profile: React.FC = () => {
 
     try {
       const response = await axios.post(`/api/users/${id}`, { tag_name: tagName });
-      setMessage('タグが作成されました: ${response.data.tag_name}');
       setTagName('');
     } catch (error) {
-      if (error.response && error.response.status === 403) {
-        // セッションが無効な場合、localStorageをclearする
-        localStorage.clear();
-      } else {
-        console.error('Error fetching data:', error);
-      }
+      setError(error.response.data.error)
+      console.error('Error fetching data:', error.response.data.error);
     }
   };
 
@@ -54,6 +49,7 @@ const Profile: React.FC = () => {
     <div className="App">
       <Header />
       <h1 className="bg-gray-300">Profileページ</h1>
+      <p>{error}</p>
       <Link to={`/`}>Topへ</Link>
 
       {/* ユーザー情報が存在する場合、nameを表示 */}

@@ -70,7 +70,8 @@ export const createUser = async (req: Request, res: Response) => {
         if (!errors.isEmpty()) {
             console.log(errors);
             console.log(req.body)
-            return res.status(400).json({ errors: errors.array(), users: req.body });
+            res.status(400).json({ errors: errors.array(), users: req.body })
+            return ;
         }
 
         const login_id: string = req.body.login_id;
