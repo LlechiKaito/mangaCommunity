@@ -45,7 +45,8 @@ export const resetPassword = async (req: Request, res: Response) => {
         if (!errors.isEmpty()) {
             console.log(errors);
             console.log(req.body)
-            return res.status(400).json({ errors: errors.array(), users: req.body });
+            res.status(400).json({ errors: errors.array(), users: req.body });
+            return ;
         }
 
         if (typeof req.query.token === 'string' && process.env.JWT_SECRET) {
@@ -63,7 +64,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             });
 
             if (!user) {
-                res.status(401).json({ error: '無効または期限技れのパスワードリセットトークンです。' });
+                res.status(401).json({ errors: '無効または期限技れのパスワードリセットトークンです。' });
                 return;
             }
 
@@ -118,9 +119,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
             await smtp.sendMail(option);
 
-            res.status(200).json({
-                message: "message has been sent",
-            });
+            res.status(204).send('正常にメールを送ることができた。');
         }
     } catch (error) {
         console.error("Error fetching users:", error);

@@ -85,9 +85,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
             return;
         }
 
-        res.status(200).json({
-            message: "message has been sent",
-        });
+        res.status(204).send('正常にパスワードを変更することができました。');
     } catch (error) {
         console.error("Error fetching users:", error);
         res.status(500).send('Internal Server Error');

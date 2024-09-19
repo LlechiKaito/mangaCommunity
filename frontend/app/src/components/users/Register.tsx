@@ -11,6 +11,7 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>('');
   const [name, setName] = useState<string>('');
+  const [errors, setErrors] = useState<string[]>()
 
   const navigate = useNavigate();
 
@@ -29,12 +30,11 @@ const Register: React.FC = () => {
       });
       navigate('/users/login');
     } catch (error) {
-      if (error.response && error.response.status === 403) {
-        // セッションが無効な場合、localStorageをclearする
-        localStorage.clear();
-      } else {
-        console.error('Error fetching data:', error);
-      }
+      const tempErrors = () => {
+        return error.response.data.errors.map((error) => error.msg);
+      };
+      setErrors(tempErrors)
+      console.error('Error fetching data:', errors);
     }
   }
 
@@ -75,6 +75,9 @@ const Register: React.FC = () => {
         />
         <button type="submit">登録</button>
       </form>
+      {errors?.map((error) => (
+        <p>{error}</p>
+      ))}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Header, { getLocalStorage } from '../shared/Header.tsx';
 
 const ForgetLoginId: React.FC = () => {
     const [emailAddress, setEmailAddress] = useState<string>('');
+    const [error, setError] = useState<string>('')
 
     const navigate = useNavigate();
 
@@ -21,12 +22,8 @@ const ForgetLoginId: React.FC = () => {
           });
           navigate(redirectUrl);
         } catch (error) {
-          if (error.response && error.response.status === 403) {
-            // セッションが無効な場合、localStorageをclearする
-            localStorage.clear();
-          } else {
-            console.error('Error fetching data:', error);
-          }
+          setError(error.response.data.error)
+          console.error('Error fetching data:', error.response.data.error);
         }
     }
   
@@ -43,6 +40,7 @@ const ForgetLoginId: React.FC = () => {
         />
         <button type="submit">送信</button>
       </form>
+      <p>{error}</p>
     </div>
   );
 }
