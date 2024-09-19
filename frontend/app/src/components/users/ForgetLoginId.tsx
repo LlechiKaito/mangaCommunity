@@ -12,7 +12,7 @@ const ForgetLoginId: React.FC = () => {
     const ForgetLoginIdSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const url: string = "/users/forget/login_id";
+        const url: string = "/api/users/forget/login_id";
         const redirectUrl: string = "/users/after-send-email";
 
         try {

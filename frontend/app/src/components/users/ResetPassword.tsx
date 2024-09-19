@@ -17,7 +17,7 @@ const ResetPassword: React.FC =  () => {
 
         const token = query.get('token');
 
-        const url: string = "/users/reset-password?token=" + token;
+        const url: string = "/api/users/reset-password?token=" + token;
         const redirectUrl: string = "/users/login";
 
         try {
